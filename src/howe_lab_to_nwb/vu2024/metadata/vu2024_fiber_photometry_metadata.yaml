@@ -1,0 +1,185 @@
+Ophys:
+  FiberPhotometry:
+    FiberPhotometryTable:
+       name: FiberPhotometryTable
+       description: Contains the metadata for the fiber photometry experiment.
+    OpticalFibers:
+      - name: Fiber34
+        description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
+          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication), 
+          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61). 
+          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially. 
+          Separation was calculated to achieve maximal coverage of the striatum volume with no overlap in the collection fields of individual fibers.
+          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary. 
+          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade. 
+          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth, 
+          uniform fiber bundle surface for imaging. 
+          A larger diameter post was mounted on one side of the plastic grid to facilitate holding during implantation.
+        manufacturer: Fiber Optics Tech
+        model: not specified
+        numerical_aperture: 0.66
+        core_diameter_in_um: 34.0
+      - name: Fiber46
+        description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
+          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication), 
+          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61). 
+          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially. 
+          Separation was calculated to achieve maximal coverage of the striatum volume with no overlap in the collection fields of individual fibers.
+          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary. 
+          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade. 
+          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth, 
+          uniform fiber bundle surface for imaging. 
+          A larger diameter post was mounted on one side of the plastic grid to facilitate holding during implantation.
+        manufacturer: Fiber Optics Tech
+        model: not specified
+        numerical_aperture: 0.66
+        core_diameter_in_um: 46.0
+    ExcitationSources:
+      - name: ExcitationSource470
+        description: |
+         Blue excitation light (470 nm LED, Thorlabs, No. SOLIS-470C) and violet excitation light (for the isosbestic control)
+         were coupled into the optic fiber such that a power of 0.75 mW was delivered to the fiber tip.
+         Then, 470 nm and 405 nm excitation were alternated at 100 Hz using a waveform generator,
+         each filtered with a corresponding filter.
+        manufacturer: Thorlabs
+        model: SOLIS-470C
+        excitation_wavelength_in_nm: 470.0
+        illumination_type: LED
+      - name: ExcitationSource405
+        description: Violet LED (405 nm, Thorlabs, No. SOLIS-405C) for the isosbestic control.
+        manufacturer: Thorlabs
+        model: SOLIS-405C
+        excitation_wavelength_in_nm: 405.0
+        illumination_type: LED
+      - name: ExcitationSource415
+        description: 415 nm LED, Thorlabs, No. SOLIS-415C
+        manufacturer: Thorlabs
+        model: SOLIS-415C
+        excitation_wavelength_in_nm: 415.0
+        illumination_type: LED
+      - name: ExcitationSource570
+        description: 405 nm, Thorlabs, No. SOLIS-570C
+        manufacturer: Thorlabs
+        model: SOLIS-570C
+        excitation_wavelength_in_nm: 570.0
+        illumination_type: LED
+    Devices:
+      - name: CMOSCamera
+        description:  A tube lens in each path (Thor labs, No TTL165-A) focused emission light onto the CMOS sensors of the cameras to form an image of the fiber bundle.
+        manufacturer: Hamamatsu Photonics, Orca Fusion BT Gen III
+      - name: LiquidLightGuide
+        description:  The liquid light guide is coupled into a filter cube on the microscope and excitation light is reflected into the back aperture of the microscope objective by a dichroic beam-splitter.
+        manufacturer: Newport, model No. 77632
+      - name: Lens1
+        description:  Lens focus at 60 mm.
+        manufacturer: Thorlabs, model  No. LA1401-A
+      - name: Lens2
+        description:  Lens focus at 30 mm.
+        manufacturer: Thorlabs, model  No. LA1805
+      - name: CollimatingBeamProbe
+        description:  Light from the LEDs is filtered, coupled into a liquid light guide with lenses and the collimating beam probe.
+        manufacturer: Newport, model No. 76600
+      - name: MicroscopeObjective
+        description:  Magnification 10x, Numerical Aperture 0.3.
+        manufacturer: Olympus, model No. UPLFLN10X2
+      - name: TubeLens
+        description:  A tube lens in each path focuses emission light onto the CMOS sensors of the cameras to form an image of the fiber bundle.
+        manufacturer: Thorlabs, model No. TTL165-A
+      - name: MicroManipulator
+        description:  The microscope was attached to a micromanipulator to allow fine manual focusing and mounted on a rotatable arm extending over the head-fixation setup to allow for coarse positioning of the objective over the mouse.
+        manufacturer: Newport, model No 9067-XYZ-R
+    BandOpticalFilters:
+      - name: OpticalFilter405
+        description: The band-pass filter used to isolate the 405 and 415 nm excitation light.
+        manufacturer: Chroma
+        model: ET405/10
+        center_wavelength_in_nm: 405.0
+        bandwidth_in_nm: 10.0
+        filter_type: Bandpass
+      - name: OpticalFilter473
+        description: The band-pass filter used to isolate the 470 nm excitation light.
+        manufacturer: Chroma
+        model: ET473/24
+        center_wavelength_in_nm: 473.0
+        bandwidth_in_nm: 24.0
+        filter_type: Bandpass
+      - name: OpticalFilter555
+        description: The band-pass filter used to isolate the 570 nm excitation light.
+        manufacturer: Chroma
+        model: ET555/25
+        center_wavelength_in_nm: 555.0
+        bandwidth_in_nm: 25.0
+        filter_type: Bandpass
+      - name: OpticalFilter525
+        description: The band-pass filter used to isolate the green emitted light after passing through a dichroic (Chroma, No. 532rdc) that reflected green and passed red fluorescence.
+        manufacturer: Chroma
+        model: 525/50m
+        center_wavelength_in_nm: 525.0
+        bandwidth_in_nm: 50.0
+        filter_type: Bandpass
+    EdgeOpticalFilter:
+      - name: OpticalFilter570
+        description: The band-pass filter used to isolate the red emitted light after passing through a dichroic (Chroma, No. 532rdc) that reflected green and passed red fluorescence.
+        manufacturer: Chroma
+        model: 570lp
+        cut_wavelength_in_nm: 570.0
+        filter_type: Longpass
+    DichroicMirrors:
+      - name: DichroicMirror1
+        description: The dichroic mirror used to reflect green and pass red fluorescence 
+        manufacturer: Chroma Tech Corp
+        model: ZT532rdc
+        cut_on_wavelength_in_nm: 532.0
+        transmission_band_in_nm: [545.0, 750.0]
+        reflection_band_in_nm: [405.0, 532.0]
+      - name: DichroicMirror2
+        description: The dichroic mirror used to direct the excitation light
+        manufacturer: Chroma Tech Corp
+        model: 405rdc
+        cut_on_wavelength_in_nm: 405
+        transmission_band_in_nm: [430.0, 820.0]
+        reflection_band_in_nm: [387.0, 420.0]
+      - name: DichroicMirror3a
+        description: The dichroic mirror used to reflect the excitation light. A multiband beamsplitter described by DichroicMirror3a and DichroicMirror3b.
+        manufacturer: Chroma Tech Corp
+        model: 59009bs
+        cut_on_wavelength_in_nm: 523
+        transmission_band_in_nm: [510.0, 540.0]
+      - name: DichroicMirror3b
+        description: The dichroic mirror used to reflect the excitation light. A multiband beamsplitter described by DichroicMirror3a and DichroicMirror3b.
+        manufacturer: Chroma Tech Corp
+        model: 59009bs
+        cut_on_wavelength_in_nm: 640
+        transmission_band_in_nm: [590.0, 680.0]
+    Indicator:
+      - name: GCaMP7f
+        description: Green calcium sensor
+        label: pGP-AAV-syn-FLEX-jGCaMP7fWPRE
+        injection_location: 
+        injection_coordinates_in_mm: []
+      - name: dLight1.3b
+        description: green dopamine sensor
+        label: pAAV-CAG-dLight1.3b(AAV5)
+        injection_location: 
+        injection_coordinates_in_mm: []
+      - name: Ach3.0
+        description: green acetyl cholinesensor
+        label: AAV9-hSyn-Ach3.0
+        injection_location: 
+        injection_coordinates_in_mm: []
+      - name: jRGECO1a
+        description: Red calcium sensor
+        label: pAAV-syn-FLEX-NESjRGECO1a-WPRE-SV40(AAV1)
+        injection_location: 
+        injection_coordinates_in_mm: []
+      - name: rDA3m
+        description: Red dopamine sensor
+        label: pAAV-hsyn-rDA3m(AAV2/9)
+        injection_location: 
+        injection_coordinates_in_mm: []
+      - name: tdTomato
+        description: Red static marker
+        label: pAAV-CAG-tdTomato(codon diversified-AAV1)
+        injection_location: 
+        injection_coordinates_in_mm: []
+

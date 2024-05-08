@@ -155,31 +155,19 @@ Ophys:
       - name: GCaMP7f
         description: Green calcium sensor
         label: pGP-AAV-syn-FLEX-jGCaMP7fWPRE
-        injection_location: 
-        injection_coordinates_in_mm: []
       - name: dLight1.3b
         description: green dopamine sensor
         label: pAAV-CAG-dLight1.3b(AAV5)
-        injection_location: 
-        injection_coordinates_in_mm: []
       - name: Ach3.0
         description: green acetyl cholinesensor
         label: AAV9-hSyn-Ach3.0
-        injection_location: 
-        injection_coordinates_in_mm: []
       - name: jRGECO1a
         description: Red calcium sensor
         label: pAAV-syn-FLEX-NESjRGECO1a-WPRE-SV40(AAV1)
-        injection_location: 
-        injection_coordinates_in_mm: []
       - name: rDA3m
         description: Red dopamine sensor
         label: pAAV-hsyn-rDA3m(AAV2/9)
-        injection_location: 
-        injection_coordinates_in_mm: []
       - name: tdTomato
         description: Red static marker
         label: pAAV-CAG-tdTomato(codon diversified-AAV1)
-        injection_location: 
-        injection_coordinates_in_mm: []
 

@@ -3,17 +3,26 @@ Ophys:
     FiberPhotometryTable:
        name: FiberPhotometryTable
        description: Contains the metadata for the fiber photometry experiment.
+    FiberPhotometryResponseSeries:
+      - name: FiberPhotometryResponseSeries
+        description: Raw fluorescence traces acquired with multi-fiber array implanted in the striatum.
+        indicator: GCaMP7f
+        optical_fiber: [Fiber34]
+        excitation_source: ExcitationSource470
+        dichroic_mirror: DichroicMirror1
+        excitation_filter: OpticalFilter473
+        photodetector: PhotodetectorPMT
     OpticalFibers:
       - name: Fiber34
         description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
-          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication), 
-          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61). 
-          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially. 
+          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication),
+          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61).
+          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially.
           Separation was calculated to achieve maximal coverage of the striatum volume with no overlap in the collection fields of individual fibers.
-          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary. 
-          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade. 
-          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth, 
-          uniform fiber bundle surface for imaging. 
+          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary.
+          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade.
+          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth,
+          uniform fiber bundle surface for imaging.
           A larger diameter post was mounted on one side of the plastic grid to facilitate holding during implantation.
         manufacturer: Fiber Optics Tech
         model: not specified
@@ -21,14 +30,14 @@ Ophys:
         core_diameter_in_um: 34.0
       - name: Fiber46
         description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
-          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication), 
-          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61). 
-          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially. 
+          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication),
+          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61).
+          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially.
           Separation was calculated to achieve maximal coverage of the striatum volume with no overlap in the collection fields of individual fibers.
-          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary. 
-          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade. 
-          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth, 
-          uniform fiber bundle surface for imaging. 
+          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary.
+          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade.
+          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth,
+          uniform fiber bundle surface for imaging.
           A larger diameter post was mounted on one side of the plastic grid to facilitate holding during implantation.
         manufacturer: Fiber Optics Tech
         model: not specified
@@ -126,7 +135,7 @@ Ophys:
         filter_type: Longpass
     DichroicMirrors:
       - name: DichroicMirror1
-        description: The dichroic mirror used to reflect green and pass red fluorescence 
+        description: The dichroic mirror used to reflect green and pass red fluorescence
         manufacturer: Chroma Tech Corp
         model: ZT532rdc
         cut_on_wavelength_in_nm: 532.0
@@ -170,4 +179,11 @@ Ophys:
       - name: tdTomato
         description: Red static marker
         label: pAAV-CAG-tdTomato(codon diversified-AAV1)
-
+    Photodetectors:
+      #TODO: this is a placeholder, need to collect metadata from author
+      - name: PhotodetectorPMT
+        description: Hamamatsu GaAsP photomultiplier tube (signal amplified using Stanford Research Systems SR570 preamplifier).
+        manufacturer: Hamamatsu Photonics
+        model: H10770PA-40
+        detector_type: PMT
+        detected_wavelength_in_nm: 520.0

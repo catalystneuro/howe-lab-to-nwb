@@ -1,0 +1,30 @@
+NWBFile:
+  related_publications:
+    - https://doi.org/10.1016/j.neuron.2023.12.011
+  session_description:
+    Neural population dynamics relevant to behavior vary over multiple spatial and temporal scales across
+    three-dimensional volumes. Current optical approaches lack the spatial coverage and resolution necessary to measure
+    and manipulate naturally occurring patterns of large-scale, distributed dynamics within and across deep brain
+    regions such as the striatum. We designed a new micro-fiber array approach capable of chronically measuring and
+    optogenetically manipulating local dynamics across over 100 targeted locations simultaneously in head-fixed and
+    freely moving mice, enabling the investigation of cell-type- and neurotransmitter-specific signals over arbitrary
+    3D volumes at a spatial resolution and coverage previously inaccessible. We applied this method to resolve rapid
+    dopamine release dynamics across the striatum, revealing distinct, modality-specific spatiotemporal patterns in
+    response to salient sensory stimuli extending over millimeters of tissue. Targeted optogenetics enabled flexible
+    control of neural signaling on multiple spatial scales, better matching endogenous signaling patterns, and the
+    spatial localization of behavioral function across large circuits.
+  institution: Boston University
+  lab: Howe
+  experimenter:
+    - Vu, Mai-Anh
+  protocol: https://doi.org/10.17504/protocols.io.bp2l6xyrklqe/v1
+  pharmacology: |
+   Mice were anesthetized under isoflurane (1-3%) and placed in a stereotaxic frame.
+   A large craniotomy was performed with a surgical drill (Midwest Tradition 790044, Avtec Dental RMWT) to expose the
+   cortical surface above the striatum. Mice were injected with AAVs to express genetically encoded proteins for
+   optical measurements and manipulations. Virus (~200-800nL per site) was injected stereotaxically through a
+   pulled glass pipette (diameter 30-50µm) at a rate of ~100nL/min. For striatum expression, virus was injected at
+   10-40 total locations chosen to maximize overlap with fiber positions. For midbrain targeting, for one set of mice,
+   we injected the 4 sites relative to bregma: AP = -3.05, ML = 0.6, DV = -4.6 and DV = -4.25; AP = -3.5, ML = 1.25,
+   DV = -3.9 and DV = -4.5. For a midbrain targeting in another set of mice, we injected at 3.07mm caudal to the bregma
+   at 4 sites: ML = 0.5mm, DV =-4.00 mm and -4.25 mm, ML = 1mm, DV = -4.125mm and ML = 1.5 mm, DV = -3.8 mm below the dura.

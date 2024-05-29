@@ -5,6 +5,7 @@ from typing import Optional
 
 import numpy as np
 from neuroconv import BaseTemporalAlignmentInterface
+from neuroconv.tools.signal_processing import get_rising_frames_from_ttl
 from neuroconv.utils import FilePathType, DeepDict
 from pymatreader import read_mat
 from pynwb import NWBFile
@@ -24,7 +25,8 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
     def __init__(
         self,
         file_path: FilePathType,
-        timestamps_file_path: FilePathType,
+        ttl_file_path: FilePathType,
+        ttl_stream_name: str = None,
         verbose: bool = True,
     ):
         """
@@ -34,8 +36,10 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         ----------
         file_path : FilePathType
             Path to the .mat file that contains the fiber photometry data.
-        timestamps_file_path : FilePathType
-            Path to the .mat file that contains the timestamps for the fiber photometry data.
+        ttl_file_path : FilePathType
+            Path to the .mat file that contains the TTL signals.
+        ttl_stream_name : str, optional
+            Name of the TTL stream to extract from the TTL signals.
         verbose : bool, default: True
             controls verbosity.
         """
@@ -43,25 +47,28 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         assert file_path.exists(), f"The file that contains the fiber photometry data '{file_path}' does not exist."
         assert file_path.suffix == ".mat", f"Expected .mat file, got {file_path.suffix}."
 
-        super().__init__(file_path=file_path, timestamps_file_path=timestamps_file_path, verbose=verbose)
+        super().__init__(
+            file_path=file_path, ttl_file_path=ttl_file_path, ttl_stream_name=ttl_stream_name, verbose=verbose
+        )
 
+        ttl_file_path = Path(ttl_file_path)
+        assert ttl_file_path.exists(), f"The file that contains the TTL signals '{file_path}' does not exist."
+        assert ttl_file_path.suffix == ".mat", f"Expected .mat file, got {ttl_file_path.suffix}."
+        ttl_data = read_mat(filename=str(ttl_file_path))
+
+        if "starttime" not in ttl_data:
+            raise ValueError(f"Expected 'starttime' is not in '{ttl_file_path}'.")
+        self._start_time = ttl_data["starttime"]
         self._timestamps = None
-        timestamps_file_path = Path(timestamps_file_path)
-        assert (
-            timestamps_file_path.exists()
-        ), f"The file that contains the timestamps for the fiber photometry data '{file_path}' does not exist."
-        assert timestamps_file_path.suffix == ".mat", f"Expected .mat file, got {timestamps_file_path.suffix}."
-        timestamps_data = read_mat(filename=str(timestamps_file_path))
-        if "starttime" not in timestamps_data:
-            raise ValueError(f"Expected 'starttime' is not in '{timestamps_file_path}'.")
-        self._start_time = timestamps_data["starttime"]
 
     def get_original_timestamps(self) -> np.ndarray:
-        filename = self.source_data["timestamps_file_path"]
-        timestamps_data = read_mat(filename=filename)
-        if "timestamp" not in timestamps_data:
-            raise ValueError(f"Timestamps not found in {filename}.")
-        return timestamps_data["timestamp"]
+        filename = self.source_data["ttl_file_path"]
+        ttl_stream_name = self.source_data.get("ttl_stream_name", "ttlIn1")
+        ttl_data = read_mat(filename=filename)
+        rising_frames = get_rising_frames_from_ttl(trace=ttl_data[ttl_stream_name])
+        timestamps = ttl_data["timestamp"]
+
+        return timestamps[rising_frames]
 
     def get_timestamps(self, stub_test: bool = False) -> np.ndarray:
         timestamps = self._timestamps if self._timestamps is not None else self.get_original_timestamps()

@@ -13,7 +13,7 @@ from howe_lab_to_nwb.vu2024.utils import process_extra_metadata
 def session_to_nwb(
     raw_fiber_photometry_file_path: Union[str, Path],
     fiber_locations_file_path: Union[str, Path],
-    timestamps_file_path: Union[str, Path],
+    ttl_file_path: Union[str, Path],
     nwbfile_path: Union[str, Path],
     stub_test: bool = False,
 ):
@@ -26,8 +26,8 @@ def session_to_nwb(
         The path to the .mat file containing the raw fiber photometry data.
     fiber_locations_file_path : Union[str, Path]
         The path to the .xlsx file containing the fiber locations.
-    timestamps_file_path : Union[str, Path]
-        The path to the .mat file containing the timestamps for the fiber photometry and behavior data.
+    ttl_file_path : Union[str, Path]
+        The path to the .mat file containing the TTL signals.
     """
 
     raw_fiber_photometry_file_path = Path(raw_fiber_photometry_file_path)
@@ -40,7 +40,7 @@ def session_to_nwb(
         dict(
             FiberPhotometry=dict(
                 file_path=str(raw_fiber_photometry_file_path),
-                timestamps_file_path=str(timestamps_file_path),
+                ttl_file_path=str(ttl_file_path),
             )
         )
     )
@@ -79,14 +79,14 @@ if __name__ == "__main__":
 
     # Parameters for conversion
     raw_fiber_photometry_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC_ROIs.mat")
-    timestamps_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31_ttlIn1_movie1.mat")
+    ttl_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31.mat")
     fiber_locations_file_path = Path("/Volumes/t7-ssd/Howe/DL18/DL18_fiber_locations.xlsx")
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/GridDL-18_211110.nwb")
     stub_test = True
 
     session_to_nwb(
         raw_fiber_photometry_file_path=raw_fiber_photometry_file_path,
-        timestamps_file_path=timestamps_file_path,
+        ttl_file_path=ttl_file_path,
         fiber_locations_file_path=fiber_locations_file_path,
         nwbfile_path=nwbfile_path,
         stub_test=stub_test,

@@ -4,6 +4,7 @@ channels:
 - defaults
 dependencies:
 - python>=3.9
+- bioformats_jar  # required for BioFormats imaging extractor
 - pip
 - pip:
   - -e .  # This calls the setup and therefore requirements minimal

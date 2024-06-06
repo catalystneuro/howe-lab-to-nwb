@@ -63,7 +63,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
 
     def get_original_timestamps(self) -> np.ndarray:
         filename = self.source_data["ttl_file_path"]
-        ttl_stream_name = self.source_data.get("ttl_stream_name", "ttlIn1")
+        ttl_stream_name = self.source_data["ttl_stream_name"] or "ttlIn1"
         ttl_data = read_mat(filename=filename)
         rising_frames = get_rising_frames_from_ttl(trace=ttl_data[ttl_stream_name])
         timestamps = ttl_data["timestamp"]

@@ -11,6 +11,7 @@ from howe_lab_to_nwb.vu2024.utils import process_extra_metadata
 
 
 def session_to_nwb(
+    raw_imaging_file_path: Union[str, Path],
     raw_fiber_photometry_file_path: Union[str, Path],
     fiber_locations_file_path: Union[str, Path],
     ttl_file_path: Union[str, Path],
@@ -35,6 +36,9 @@ def session_to_nwb(
     source_data = dict()
     conversion_options = dict()
 
+    # Add raw imaging data
+    source_data.update(dict(Imaging=dict(file_path=str(raw_imaging_file_path))))
+
     # Add raw fiber photometry
     source_data.update(
         dict(
@@ -45,6 +49,7 @@ def session_to_nwb(
         )
     )
     conversion_options.update(dict(FiberPhotometry=dict(stub_test=stub_test)))
+    conversion_options.update(dict(Imaging=dict(stub_test=stub_test)))
 
     converter = Vu2024NWBConverter(source_data=source_data)
 
@@ -78,6 +83,7 @@ def session_to_nwb(
 if __name__ == "__main__":
 
     # Parameters for conversion
+    raw_imaging_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217.cxd")
     raw_fiber_photometry_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC_ROIs.mat")
     ttl_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31.mat")
     fiber_locations_file_path = Path("/Volumes/t7-ssd/Howe/DL18/DL18_fiber_locations.xlsx")
@@ -85,6 +91,7 @@ if __name__ == "__main__":
     stub_test = True
 
     session_to_nwb(
+        raw_imaging_file_path=raw_imaging_file_path,
         raw_fiber_photometry_file_path=raw_fiber_photometry_file_path,
         ttl_file_path=ttl_file_path,
         fiber_locations_file_path=fiber_locations_file_path,

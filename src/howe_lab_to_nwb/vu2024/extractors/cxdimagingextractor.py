@@ -181,30 +181,7 @@ class CxdImagingExtractor(ImagingExtractor):
     def get_sampling_frequency(self):
         return self._sampling_frequency
 
-    def check_frame_inputs(self, frame) -> None:
-        """Check that the frame index is valid. Raise ValueError if not.
-
-        Parameters
-        ----------
-        frame : int
-            The index of the frame to retrieve.
-
-        Raises
-        ------
-        ValueError
-            If the frame index is invalid.
-        """
-        if frame is None:
-            return
-        if frame >= self._num_frames:
-            raise ValueError(f"Frame index ({frame}) exceeds number of frames ({self._num_frames}).")
-        if frame < 0:
-            raise ValueError(f"Frame index ({frame}) must be greater than or equal to 0.")
-
     def get_video(self, start_frame=None, end_frame=None, channel: int = 0) -> np.ndarray:
-        self.check_frame_inputs(start_frame)
-        self.check_frame_inputs(end_frame)
-
         video = self._video[start_frame:end_frame, self.channel_index, self.plane_index, ...]
 
         return video.compute()

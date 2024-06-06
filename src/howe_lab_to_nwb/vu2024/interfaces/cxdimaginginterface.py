@@ -60,9 +60,13 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
             name=device_name,
             manufacturer="Hamamatsu Photonics",
         )
+        optical_channel_name = "OpticalChannel"  # TODO: add better channel name
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]
+        optical_channel_metadata = imaging_plane_metadata["optical_channel"][0]
+        optical_channel_metadata.update(name=optical_channel_name)
         imaging_plane_metadata.update(
             device=device_name,
+            optical_channel=[optical_channel_metadata],
         )
 
         return metadata

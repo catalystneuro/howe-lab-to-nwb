@@ -129,7 +129,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         description = fluorescence_metadata["description"]
         description = description.replace("Raw", "Baseline")
         fluorescence_metadata.update(
-            name="BaselineFiberPhotometryResponseSeries",
+            name="FiberPhotometryResponseSeriesIsosbestic",
             description=description,
         )
         add_fiber_photometry_series(

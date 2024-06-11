@@ -7,13 +7,13 @@ Ophys:
       - name: FiberPhotometryResponseSeries
         description: Raw fluorescence traces acquired with multi-fiber array implanted in the striatum.
         indicator: GCaMP7f
-        optical_fiber: [Fiber34]
+        optical_fiber: FiberArray
         excitation_source: ExcitationSource470
         dichroic_mirror: DichroicMirror1
         excitation_filter: OpticalFilter473
         photodetector: PhotodetectorPMT
     OpticalFibers:
-      - name: Fiber34
+      - name: FiberArray
         description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
           Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication),
           measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61).

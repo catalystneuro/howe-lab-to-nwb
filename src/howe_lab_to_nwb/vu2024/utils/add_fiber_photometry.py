@@ -1,9 +1,11 @@
 from collections import defaultdict
+from pathlib import Path
 from typing import Literal, List
 
 import numpy as np
+import pandas as pd
 from neuroconv.tools import get_module
-from neuroconv.utils import calculate_regular_series_rate
+from neuroconv.utils import calculate_regular_series_rate, FilePathType
 from pynwb import NWBFile
 from ndx_fiber_photometry import (
     FiberPhotometryTable,
@@ -59,6 +61,7 @@ def add_fiber_photometry_series(
     data: np.ndarray,
     timestamps: np.ndarray,
     fiber_photometry_series_name: str,
+    fiber_locations_metadata: List[dict],
     table_region: List[int] = None,
     parent_container: Literal["acquisition", "processing/ophys"] = "acquisition",
 ):
@@ -75,18 +78,12 @@ def add_fiber_photometry_series(
     add_fiber_photometry_table(nwbfile=nwbfile, metadata=metadata)
     fiber_photometry_table = nwbfile.lab_meta_data["FiberPhotometry"].fiber_photometry_table
 
-    fibers_to_add = trace_metadata["optical_fiber"]
-    for fiber_to_add in fibers_to_add:
-        optical_fiber_attributes = {
-            "name",
-            "description",
-            "manufacturer",
-            "model",
-            "numerical_aperture",
-            "core_diameter_in_um",
-        }
-        optical_fiber_metadata = {k: v for k, v in fiber_to_add.items() if k in optical_fiber_attributes}
-        add_photometry_device(nwbfile, device_metadata=optical_fiber_metadata, device_type="OpticalFiber")
+    fiber_to_add = trace_metadata["optical_fiber"]
+    fiber_metadata = next(
+        (fiber for fiber in fiber_photometry_metadata["OpticalFibers"] if fiber["name"] == fiber_to_add),
+        None,
+    )
+    add_photometry_device(nwbfile, device_metadata=fiber_metadata, device_type="OpticalFiber")
 
     indicator_to_add = trace_metadata["indicator"]
     indicator_metadata = next(
@@ -159,13 +156,15 @@ def add_fiber_photometry_series(
     #     raise ValueError(f"Emission filter metadata for '{emission_filter_to_add}' not found.")
     # add_photometry_device(nwbfile, device_metadata=emission_filter_metadata, device_type="BandOpticalFilter")
 
-    for fiber_to_add in fibers_to_add:
-        fiber_name = fiber_to_add["name"]
+    num_fibers = data.shape[1]
+    for fiber_ind in range(num_fibers):
         fiber_photometry_table.add_row(
-            location=fiber_to_add["location"],  # TODO: change this in the extension to brain_area
-            coordinates=fiber_to_add["coordinates"],
+            location=fiber_locations_metadata[fiber_ind][
+                "location"
+            ],  # TODO: change this in the extension to brain_area
+            coordinates=fiber_locations_metadata[fiber_ind]["coordinates"],
             indicator=nwbfile.devices[indicator_to_add],
-            optical_fiber=nwbfile.devices[fiber_name],
+            optical_fiber=nwbfile.devices[fiber_to_add],
             excitation_source=nwbfile.devices[excitation_source_to_add],
             photodetector=nwbfile.devices[photodetector_to_add],
             dichroic_mirror=nwbfile.devices[dichroic_mirror_to_add],
@@ -173,7 +172,7 @@ def add_fiber_photometry_series(
             # emission_filter=nwbfile.devices[emission_filter_to_add],
         )
 
-    table_region = table_region or list(range(len(fibers_to_add)))
+    table_region = table_region or list(range(num_fibers))
     fiber_photometry_table_region = fiber_photometry_table.create_fiber_photometry_table_region(
         region=table_region, description="source fibers"
     )
@@ -201,3 +200,33 @@ def add_fiber_photometry_series(
         ophys.add(fiber_photometry_response_series)
     else:
         raise ValueError(f"Invalid parent container '{parent_container}'.")
+
+
+def get_fiber_locations(file_path: FilePathType) -> List[dict]:
+    """
+    Read fiber locations from an xlsx file and return a list of dictionaries with the fiber metadata.
+
+    Parameters
+    ----------
+    file_path : FilePathType
+        The path to the fiber locations xlsx file.
+    """
+
+    assert Path(file_path).exists(), f"File {file_path} does not exist."
+    fiber_locations = pd.read_excel(file_path)
+    fiber_locations.replace(to_replace={pd.NA: None}, inplace=True)
+
+    fibers_metadata = []
+    for roi_ind, row in fiber_locations.iterrows():
+        coordinates = [row["fiber_bottom_AP"], row["fiber_bottom_ML"], row["fiber_bottom_DV"]]
+        fiber_metadata = dict(
+            coordinates=coordinates,
+            # todo: sometimes allen label is not specified but ccf and fp labels are, what should be the location in this case?
+            # TODO: rename to brain_area
+            location=row["allen_label_abbrev"] if row["allen_label_abbrev"] else "unknown",
+            # ccf_label=row["ccf_label"],
+            # fp_label=row["fp_label"],
+        )
+        fibers_metadata.append(fiber_metadata)
+
+    return fibers_metadata

@@ -7,7 +7,7 @@ from dateutil import tz
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 
 from howe_lab_to_nwb.vu2024 import Vu2024NWBConverter
-from howe_lab_to_nwb.vu2024.utils import process_extra_metadata
+from howe_lab_to_nwb.vu2024.utils import get_fiber_locations
 
 
 def session_to_nwb(
@@ -38,6 +38,7 @@ def session_to_nwb(
 
     # Add raw imaging data
     source_data.update(dict(Imaging=dict(file_path=str(raw_imaging_file_path))))
+    conversion_options.update(dict(Imaging=dict(stub_test=stub_test)))
 
     # Add raw fiber photometry
     source_data.update(
@@ -48,8 +49,12 @@ def session_to_nwb(
             )
         )
     )
-    conversion_options.update(dict(FiberPhotometry=dict(stub_test=stub_test)))
-    conversion_options.update(dict(Imaging=dict(stub_test=stub_test)))
+
+    # Add fiber locations
+    fiber_locations_metadata = get_fiber_locations(fiber_locations_file_path)
+    conversion_options.update(
+        dict(FiberPhotometry=dict(stub_test=stub_test, fiber_locations_metadata=fiber_locations_metadata))
+    )
 
     converter = Vu2024NWBConverter(source_data=source_data)
 
@@ -68,11 +73,7 @@ def session_to_nwb(
         Path(__file__).parent / "metadata" / "vu2024_fiber_photometry_metadata.yaml"
     )
 
-    extra_metadata = process_extra_metadata(
-        file_path=fiber_locations_file_path,
-        metadata=fiber_photometry_metadata,
-    )
-    metadata = dict_deep_update(metadata, extra_metadata)
+    metadata = dict_deep_update(metadata, fiber_photometry_metadata)
 
     # Run conversion
     converter.run_conversion(

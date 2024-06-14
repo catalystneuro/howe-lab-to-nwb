@@ -1,4 +1,5 @@
 from collections import defaultdict
+from copy import deepcopy
 from pathlib import Path
 from typing import Literal, List
 
@@ -47,6 +48,14 @@ def add_fiber_photometry_table(nwbfile: NWBFile, metadata: dict):
 
     fiber_photometry_table_metadata = fiber_photometry_metadata["FiberPhotometryTable"]
     fiber_photometry_table = FiberPhotometryTable(**fiber_photometry_table_metadata)
+    fiber_photometry_table.add_column(
+        name="allen_atlas_coordinates",
+        description="The fiber bottom coordinates (AP, ML, DV) in Allen Brain Atlas coordinates",
+    )
+    fiber_photometry_table.add_column(
+        name="is_good_fiber",
+        description="Whether the recording from this fiber is of good quality based on post-hoc analysis.",
+    )
 
     fiber_photometry_lab_meta_data = FiberPhotometry(
         name="FiberPhotometry",
@@ -157,32 +166,45 @@ def add_fiber_photometry_series(
     # add_photometry_device(nwbfile, device_metadata=emission_filter_metadata, device_type="BandOpticalFilter")
 
     num_fibers = data.shape[1]
-    for fiber_ind in range(num_fibers):
-        fiber_photometry_table.add_row(
-            location=fiber_locations_metadata[fiber_ind][
-                "location"
-            ],  # TODO: change this in the extension to brain_area
-            coordinates=fiber_locations_metadata[fiber_ind]["coordinates"],
-            indicator=nwbfile.devices[indicator_to_add],
-            optical_fiber=nwbfile.devices[fiber_to_add],
-            excitation_source=nwbfile.devices[excitation_source_to_add],
-            photodetector=nwbfile.devices[photodetector_to_add],
-            dichroic_mirror=nwbfile.devices[dichroic_mirror_to_add],
-            excitation_filter=nwbfile.devices[optical_filter_to_add],
-            # emission_filter=nwbfile.devices[emission_filter_to_add],
+    if len(fiber_photometry_table) == 0:
+        for fiber_ind in range(num_fibers):
+            brain_area = fiber_locations_metadata[fiber_ind]["location"]
+            is_good_fiber = True if brain_area else False
+            fiber_photometry_table.add_row(
+                is_good_fiber=is_good_fiber,
+                location=brain_area if brain_area else "",  # TODO: change this in the extension to brain_area
+                coordinates=fiber_locations_metadata[fiber_ind]["coordinates"],
+                allen_atlas_coordinates=fiber_locations_metadata[fiber_ind]["allen_atlas_coordinates"],
+                indicator=nwbfile.devices[indicator_to_add],
+                optical_fiber=nwbfile.devices[fiber_to_add],
+                excitation_source=nwbfile.devices[excitation_source_to_add],
+                photodetector=nwbfile.devices[photodetector_to_add],
+                dichroic_mirror=nwbfile.devices[dichroic_mirror_to_add],
+                excitation_filter=nwbfile.devices[optical_filter_to_add],
+                # emission_filter=nwbfile.devices[emission_filter_to_add],
+            )
+
+        table_region = table_region or list(range(num_fibers))
+        fiber_photometry_table_region = fiber_photometry_table.create_fiber_photometry_table_region(
+            region=table_region, description="source fibers"
         )
 
-    table_region = table_region or list(range(num_fibers))
-    fiber_photometry_table_region = fiber_photometry_table.create_fiber_photometry_table_region(
-        region=table_region, description="source fibers"
-    )
-
-    timing_kwargs = dict()
-    rate = calculate_regular_series_rate(series=timestamps)
-    if rate is not None:
-        timing_kwargs.update(rate=rate, starting_time=timestamps[0])
+        timing_kwargs = dict()
+        rate = calculate_regular_series_rate(series=timestamps)
+        if rate is not None:
+            timing_kwargs.update(rate=rate, starting_time=timestamps[0])
+        else:
+            timing_kwargs.update(timestamps=timestamps)
     else:
-        timing_kwargs.update(timestamps=timestamps)
+        raw_fiber_photometry_response_series = nwbfile.acquisition["FiberPhotometryResponseSeries"]
+        fiber_photometry_table_region = raw_fiber_photometry_response_series.fiber_photometry_table_region
+        if raw_fiber_photometry_response_series.timestamps is not None:
+            timing_kwargs = dict(timestamps=raw_fiber_photometry_response_series.timestamps)
+        else:
+            timing_kwargs = dict(
+                rate=raw_fiber_photometry_response_series.rate,
+                starting_time=raw_fiber_photometry_response_series.starting_time,
+            )
 
     fiber_photometry_response_series = FiberPhotometryResponseSeries(
         name=trace_metadata["name"],
@@ -219,14 +241,53 @@ def get_fiber_locations(file_path: FilePathType) -> List[dict]:
     fibers_metadata = []
     for roi_ind, row in fiber_locations.iterrows():
         coordinates = [row["fiber_bottom_AP"], row["fiber_bottom_ML"], row["fiber_bottom_DV"]]
+        allen_atlas_coordinates = [row["fiber_bottom_AP_idx"], row["fiber_bottom_ML_idx"], row["fiber_bottom_DV_idx"]]
         fiber_metadata = dict(
             coordinates=coordinates,
-            # todo: sometimes allen label is not specified but ccf and fp labels are, what should be the location in this case?
+            allen_atlas_coordinates=allen_atlas_coordinates,
             # TODO: rename to brain_area
-            location=row["allen_label_abbrev"] if row["allen_label_abbrev"] else "unknown",
-            # ccf_label=row["ccf_label"],
-            # fp_label=row["fp_label"],
+            location=row["ccf_label"],
         )
         fibers_metadata.append(fiber_metadata)
 
     return fibers_metadata
+
+
+def update_fiber_photometry_metadata(metadata: dict, indicator: str, excitation_wavelength_in_nm: int) -> dict:
+    """Process extra metadata for the Vu 2024 fiber photometry dataset.
+
+    Parameters
+    ----------
+    metadata : dict
+        The metadata dictionary containing the metadata for the fiber photometry setup.
+    indicator : str
+        The name of the indicator used in the experiment (e.g 'dLight1.3b', 'GCaMP7f').
+    excitation_wavelength_in_nm : int
+        The excitation wavelength in nm.
+
+    Returns
+    -------
+    dict
+        The updated metadata dictionary.
+    """
+    metadata_copy = deepcopy(metadata)
+    fiber_photometry_metadata = metadata_copy["Ophys"]["FiberPhotometry"]
+    fiber_photometry_response_series_metadata = fiber_photometry_metadata["FiberPhotometryResponseSeries"][0]
+
+    if excitation_wavelength_in_nm == 470:
+        dichroic_mirror = "DichroicMirror2"
+    elif excitation_wavelength_in_nm == 405:
+        dichroic_mirror = "DichroicMirror2"
+    elif excitation_wavelength_in_nm == 570:
+        dichroic_mirror = "DichroicMirror3a"
+    else:
+        raise ValueError(f"Can't determine the dichroic mirror metadata for {excitation_wavelength_in_nm} excitation.")
+
+    fiber_photometry_response_series_metadata.update(
+        indicator=indicator,
+        excitation_source=f"ExcitationSource{excitation_wavelength_in_nm}",
+        excitation_filter=f"OpticalFilter{excitation_wavelength_in_nm}",
+        dichroic_mirror=dichroic_mirror,
+    )
+
+    return metadata_copy

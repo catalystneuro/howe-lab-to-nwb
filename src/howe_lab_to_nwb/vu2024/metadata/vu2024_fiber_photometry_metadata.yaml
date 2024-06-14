@@ -11,7 +11,7 @@ Ophys:
         excitation_source: ExcitationSource470
         dichroic_mirror: DichroicMirror1
         excitation_filter: OpticalFilter473
-        photodetector: PhotodetectorPMT
+        photodetector: CMOSCamera
     OpticalFibers:
       - name: FiberArray
         description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
@@ -105,14 +105,14 @@ Ophys:
         center_wavelength_in_nm: 405.0
         bandwidth_in_nm: 10.0
         filter_type: Bandpass
-      - name: OpticalFilter473
+      - name: OpticalFilter470
         description: The band-pass filter used to isolate the 470 nm excitation light.
         manufacturer: Chroma
         model: ET473/24
         center_wavelength_in_nm: 473.0
         bandwidth_in_nm: 24.0
         filter_type: Bandpass
-      - name: OpticalFilter555
+      - name: OpticalFilter570
         description: The band-pass filter used to isolate the 570 nm excitation light.
         manufacturer: Chroma
         model: ET555/25
@@ -145,20 +145,20 @@ Ophys:
         description: The dichroic mirror used to direct the excitation light
         manufacturer: Chroma Tech Corp
         model: 405rdc
-        cut_on_wavelength_in_nm: 405
+        cut_on_wavelength_in_nm: 405.0
         transmission_band_in_nm: [430.0, 820.0]
         reflection_band_in_nm: [387.0, 420.0]
       - name: DichroicMirror3a
         description: The dichroic mirror used to reflect the excitation light. A multiband beamsplitter described by DichroicMirror3a and DichroicMirror3b.
         manufacturer: Chroma Tech Corp
         model: 59009bs
-        cut_on_wavelength_in_nm: 523
+        cut_on_wavelength_in_nm: 523.0
         transmission_band_in_nm: [510.0, 540.0]
       - name: DichroicMirror3b
         description: The dichroic mirror used to reflect the excitation light. A multiband beamsplitter described by DichroicMirror3a and DichroicMirror3b.
         manufacturer: Chroma Tech Corp
         model: 59009bs
-        cut_on_wavelength_in_nm: 640
+        cut_on_wavelength_in_nm: 640.0
         transmission_band_in_nm: [590.0, 680.0]
     Indicator:
       - name: GCaMP7f
@@ -180,10 +180,10 @@ Ophys:
         description: Red static marker
         label: pAAV-CAG-tdTomato(codon diversified-AAV1)
     Photodetectors:
-      #TODO: this is a placeholder, need to collect metadata from author
-      - name: PhotodetectorPMT
-        description: Hamamatsu GaAsP photomultiplier tube (signal amplified using Stanford Research Systems SR570 preamplifier).
+      - name: CMOSCamera
+        description: A tube lens in each path (Thor labs, No TTL165-A, detected wavelength bandwidth 350-700 nm) focused emission light onto the CMOS sensors of the cameras to form an image of the fiber bundle.
         manufacturer: Hamamatsu Photonics
-        model: H10770PA-40
-        detector_type: PMT
-        detected_wavelength_in_nm: 520.0
+        model: Orca Fusion BT Gen III
+        detector_type: camera
+        # not sure where to get this https://www.hamamatsu.com/content/dam/hamamatsu-photonics/sites/documents/99_SALES_LIBRARY/sys/SCAS0143E_C15440-20UP.pdf
+        detected_wavelength_in_nm: 525.0

@@ -8,12 +8,15 @@ from neuroconv.utils import load_dict_from_file, dict_deep_update
 
 from howe_lab_to_nwb.vu2024 import Vu2024NWBConverter
 from howe_lab_to_nwb.vu2024.utils import get_fiber_locations
+from howe_lab_to_nwb.vu2024.utils.add_fiber_photometry import update_fiber_photometry_metadata
 
 
-def session_to_nwb(
+def single_wavelength_session_to_nwb(
     raw_imaging_file_path: Union[str, Path],
     raw_fiber_photometry_file_path: Union[str, Path],
     fiber_locations_file_path: Union[str, Path],
+    excitation_wavelength_in_nm: int,
+    indicator: str,
     ttl_file_path: Union[str, Path],
     nwbfile_path: Union[str, Path],
     stub_test: bool = False,
@@ -72,6 +75,11 @@ def session_to_nwb(
     fiber_photometry_metadata = load_dict_from_file(
         Path(__file__).parent / "metadata" / "vu2024_fiber_photometry_metadata.yaml"
     )
+    fiber_photometry_metadata = update_fiber_photometry_metadata(
+        metadata=fiber_photometry_metadata,
+        excitation_wavelength_in_nm=excitation_wavelength_in_nm,
+        indicator=indicator,
+    )
 
     metadata = dict_deep_update(metadata, fiber_photometry_metadata)
 
@@ -88,14 +96,20 @@ if __name__ == "__main__":
     raw_fiber_photometry_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC_ROIs.mat")
     ttl_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31.mat")
     fiber_locations_file_path = Path("/Volumes/t7-ssd/Howe/DL18/DL18_fiber_locations.xlsx")
+
+    excitation_wavelength_in_nm = 470
+    indicator = "dLight1.3b"
+
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/GridDL-18_211110.nwb")
     stub_test = True
 
-    session_to_nwb(
+    single_wavelength_session_to_nwb(
         raw_imaging_file_path=raw_imaging_file_path,
         raw_fiber_photometry_file_path=raw_fiber_photometry_file_path,
         ttl_file_path=ttl_file_path,
         fiber_locations_file_path=fiber_locations_file_path,
+        excitation_wavelength_in_nm=excitation_wavelength_in_nm,
+        indicator=indicator,
         nwbfile_path=nwbfile_path,
         stub_test=stub_test,
     )

@@ -22,3 +22,11 @@ class Vu2024NWBConverter(NWBConverter):
         )
 
         return metadata_schema
+
+    def temporally_align_data_interfaces(self):
+        imaging = self.data_interface_objects["Imaging"]
+        fiber_photometry = self.data_interface_objects["FiberPhotometry"]
+        # Use the timestamps from the fiber photometry interface for the imaging data
+        # The timestamps from the fiber photometry data is from the TTL signals
+        fiber_photometry_timestamps = fiber_photometry.get_timestamps()
+        imaging.set_aligned_timestamps(aligned_timestamps=fiber_photometry_timestamps)

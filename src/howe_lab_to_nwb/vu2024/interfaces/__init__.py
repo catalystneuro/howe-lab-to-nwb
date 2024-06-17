@@ -1,2 +1,3 @@
 from .vu2024_fiberphotometryinterface import Vu2024FiberPhotometryInterface
 from .cxdimaginginterface import CxdImagingInterface
+from .vu2024_behaviorinterface import Vu2024BehaviorInterface

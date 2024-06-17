@@ -8,13 +8,16 @@ from neuroconv.utils import load_dict_from_file, dict_deep_update
 
 from howe_lab_to_nwb.vu2024 import Vu2024NWBConverter
 from howe_lab_to_nwb.vu2024.extractors.bioformats_utils import extract_ome_metadata, parse_ome_metadata
-from howe_lab_to_nwb.vu2024.utils import process_extra_metadata
+from howe_lab_to_nwb.vu2024.utils import get_fiber_locations
+from howe_lab_to_nwb.vu2024.utils.add_fiber_photometry import update_fiber_photometry_metadata
 
 
-def session_to_nwb(
+def single_wavelength_session_to_nwb(
     raw_imaging_file_path: Union[str, Path],
     raw_fiber_photometry_file_path: Union[str, Path],
     fiber_locations_file_path: Union[str, Path],
+    excitation_wavelength_in_nm: int,
+    indicator: str,
     ttl_file_path: Union[str, Path],
     motion_corrected_imaging_file_path: Union[str, Path],
     nwbfile_path: Union[str, Path],
@@ -78,6 +81,12 @@ def session_to_nwb(
         dict(ProcessedImaging=dict(stub_test=stub_test, photon_series_index=1, parent_container="processing/ophys"))
     )
 
+    # Add fiber locations
+    fiber_locations_metadata = get_fiber_locations(fiber_locations_file_path)
+    conversion_options.update(
+        dict(FiberPhotometry=dict(stub_test=stub_test, fiber_locations_metadata=fiber_locations_metadata))
+    )
+
     converter = Vu2024NWBConverter(source_data=source_data)
 
     # Add datetime to conversion
@@ -94,12 +103,13 @@ def session_to_nwb(
     fiber_photometry_metadata = load_dict_from_file(
         Path(__file__).parent / "metadata" / "vu2024_fiber_photometry_metadata.yaml"
     )
-
-    extra_metadata = process_extra_metadata(
-        file_path=fiber_locations_file_path,
+    fiber_photometry_metadata = update_fiber_photometry_metadata(
         metadata=fiber_photometry_metadata,
+        excitation_wavelength_in_nm=excitation_wavelength_in_nm,
+        indicator=indicator,
     )
-    metadata = dict_deep_update(metadata, extra_metadata)
+
+    metadata = dict_deep_update(metadata, fiber_photometry_metadata)
 
     ophys_metadata = load_dict_from_file(Path(__file__).parent / "metadata" / "vu2024_ophys_metadata.yaml")
     metadata = dict_deep_update(metadata, ophys_metadata)
@@ -122,14 +132,19 @@ if __name__ == "__main__":
     # The sampling frequency of the raw imaging data must be provided when it cannot be extracted from the .cxd file
     sampling_frequency = None
 
+    excitation_wavelength_in_nm = 470
+    indicator = "dLight1.3b"
+
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/GridDL-18_211110.nwb")
     stub_test = True
 
-    session_to_nwb(
+    single_wavelength_session_to_nwb(
         raw_imaging_file_path=raw_imaging_file_path,
         raw_fiber_photometry_file_path=raw_fiber_photometry_file_path,
         ttl_file_path=ttl_file_path,
         fiber_locations_file_path=fiber_locations_file_path,
+        excitation_wavelength_in_nm=excitation_wavelength_in_nm,
+        indicator=indicator,
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_path,
         nwbfile_path=nwbfile_path,
         sampling_frequency=sampling_frequency,

@@ -92,6 +92,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         self,
         nwbfile: NWBFile,
         metadata: dict,
+        fiber_locations_metadata: list,
         stub_test: Optional[bool] = False,
     ) -> None:
 
@@ -100,6 +101,14 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
 
         raw_fluorescence = fiber_photometry_data["F"]
         data_to_add = raw_fluorescence if not stub_test else raw_fluorescence[:6000]
+        fiber_table_region = list(range(data_to_add.shape[1]))
+
+        if len(fiber_locations_metadata) != data_to_add.shape[1]:
+            raise ValueError(
+                f"Number of fiber locations ({len(fiber_locations_metadata)}) does not match the number of fibers "
+                f"({data_to_add.shape[1]})."
+            )
+
         # Add raw fiber photometry data to NWBFile
         add_fiber_photometry_series(
             nwbfile=nwbfile,
@@ -107,6 +116,8 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
             data=data_to_add,
             timestamps=timestamps,
             fiber_photometry_series_name="FiberPhotometryResponseSeries",
+            fiber_locations_metadata=fiber_locations_metadata,
+            table_region=fiber_table_region,
         )
 
         # Add baseline fluorescence data to NWBFile
@@ -127,6 +138,8 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
             data=baseline_data_to_add,
             timestamps=timestamps,
             fiber_photometry_series_name="BaselineFiberPhotometryResponseSeries",
+            fiber_locations_metadata=fiber_locations_metadata,
+            table_region=fiber_table_region,
             parent_container="processing/ophys",
         )
 
@@ -149,5 +162,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
             data=corrected_data_to_add,
             timestamps=timestamps,
             fiber_photometry_series_name="DfOverFFiberPhotometryResponseSeries",
+            fiber_locations_metadata=fiber_locations_metadata,
+            table_region=fiber_table_region,
             parent_container="processing/ophys",
         )

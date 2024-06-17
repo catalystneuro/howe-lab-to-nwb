@@ -50,11 +50,11 @@ def add_fiber_photometry_table(nwbfile: NWBFile, metadata: dict):
     fiber_photometry_table = FiberPhotometryTable(**fiber_photometry_table_metadata)
     fiber_photometry_table.add_column(
         name="allen_atlas_coordinates",
-        description="The fiber bottom coordinates (AP, ML, DV) in Allen Brain Atlas coordinates",
+        description="The fiber tip coordinates (AP, ML, DV) in Allen Brain Atlas coordinates",
     )
     fiber_photometry_table.add_column(
         name="is_good_fiber",
-        description="Whether the recording from this fiber is of good quality based on post-hoc analysis.",
+        description="Whether this fiber has been successfully implanted.",
     )
 
     fiber_photometry_lab_meta_data = FiberPhotometry(

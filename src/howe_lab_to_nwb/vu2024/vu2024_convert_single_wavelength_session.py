@@ -20,6 +20,7 @@ def single_wavelength_session_to_nwb(
     indicator: str,
     ttl_file_path: Union[str, Path],
     motion_corrected_imaging_file_path: Union[str, Path],
+    behavior_file_path: Union[str, Path],
     nwbfile_path: Union[str, Path],
     sampling_frequency: float = None,
     stub_test: bool = False,
@@ -87,6 +88,10 @@ def single_wavelength_session_to_nwb(
         dict(FiberPhotometry=dict(stub_test=stub_test, fiber_locations_metadata=fiber_locations_metadata))
     )
 
+    # Add behavior
+    source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
+    conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))
+
     converter = Vu2024NWBConverter(source_data=source_data)
 
     # Add datetime to conversion
@@ -128,6 +133,7 @@ if __name__ == "__main__":
     ttl_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31.mat")
     fiber_locations_file_path = Path("/Volumes/t7-ssd/Howe/DL18/DL18_fiber_locations.xlsx")
     motion_corrected_imaging_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC.tif")
+    behavior_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31_ttlIn1_movie1.mat")
 
     # The sampling frequency of the raw imaging data must be provided when it cannot be extracted from the .cxd file
     sampling_frequency = None
@@ -146,6 +152,7 @@ if __name__ == "__main__":
         excitation_wavelength_in_nm=excitation_wavelength_in_nm,
         indicator=indicator,
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_path,
+        behavior_file_path=behavior_file_path,
         nwbfile_path=nwbfile_path,
         sampling_frequency=sampling_frequency,
         stub_test=stub_test,

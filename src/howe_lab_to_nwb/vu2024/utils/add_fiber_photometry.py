@@ -152,18 +152,27 @@ def add_fiber_photometry_series(
         raise ValueError(f"Optical filter metadata for '{optical_filter_to_add}' not found.")
     add_photometry_device(nwbfile, device_metadata=optical_filter_metadata, device_type="BandOpticalFilter")
 
-    # emission_filter_to_add = trace_metadata["emission_filter"]
-    # emission_filter_metadata = next(
-    #     (
-    #         filter
-    #         for filter in fiber_photometry_metadata["BandOpticalFilters"]
-    #         if filter["name"] == emission_filter_to_add
-    #     ),
-    #     None,
-    # )
-    # if emission_filter_metadata is None:
-    #     raise ValueError(f"Emission filter metadata for '{emission_filter_to_add}' not found.")
-    # add_photometry_device(nwbfile, device_metadata=emission_filter_metadata, device_type="BandOpticalFilter")
+    emission_filter_to_add = trace_metadata["emission_filter"]
+    emission_filter_metadata = next(
+        (
+            filter
+            for filter in fiber_photometry_metadata["BandOpticalFilters"]
+            if filter["name"] == emission_filter_to_add
+        ),
+        None,
+    )
+    if emission_filter_metadata is None:
+        emission_filter_metadata = next(
+            (
+                filter
+                for filter in fiber_photometry_metadata["EdgeOpticalFilters"]
+                if filter["name"] == emission_filter_to_add
+            ),
+            None,
+        )
+    if emission_filter_metadata is None:
+        raise ValueError(f"Emission filter metadata for '{emission_filter_to_add}' not found.")
+    add_photometry_device(nwbfile, device_metadata=emission_filter_metadata, device_type="BandOpticalFilter")
 
     num_fibers = data.shape[1]
     if len(fiber_photometry_table) == 0:
@@ -172,7 +181,7 @@ def add_fiber_photometry_series(
             is_good_fiber = True if brain_area else False
             fiber_photometry_table.add_row(
                 is_good_fiber=is_good_fiber,
-                location=brain_area if brain_area else "",  # TODO: change this in the extension to brain_area
+                location=brain_area,  # TODO: change this in the extension to brain_area
                 coordinates=fiber_locations_metadata[fiber_ind]["coordinates"],
                 allen_atlas_coordinates=fiber_locations_metadata[fiber_ind]["allen_atlas_coordinates"],
                 indicator=nwbfile.devices[indicator_to_add],
@@ -181,7 +190,7 @@ def add_fiber_photometry_series(
                 photodetector=nwbfile.devices[photodetector_to_add],
                 dichroic_mirror=nwbfile.devices[dichroic_mirror_to_add],
                 excitation_filter=nwbfile.devices[optical_filter_to_add],
-                # emission_filter=nwbfile.devices[emission_filter_to_add],
+                emission_filter=nwbfile.devices[emission_filter_to_add],
             )
 
         table_region = table_region or list(range(num_fibers))
@@ -241,19 +250,28 @@ def get_fiber_locations(file_path: FilePathType) -> List[dict]:
     fibers_metadata = []
     for roi_ind, row in fiber_locations.iterrows():
         coordinates = [row["fiber_bottom_AP"], row["fiber_bottom_ML"], row["fiber_bottom_DV"]]
+        brain_area = row["ccf_label"]
+        if brain_area is None:
+            coordinates = [np.nan, np.nan, np.nan]
+            brain_area = ""
+
         allen_atlas_coordinates = [row["fiber_bottom_AP_idx"], row["fiber_bottom_ML_idx"], row["fiber_bottom_DV_idx"]]
         fiber_metadata = dict(
             coordinates=coordinates,
             allen_atlas_coordinates=allen_atlas_coordinates,
             # TODO: rename to brain_area
-            location=row["ccf_label"],
+            location=brain_area,
         )
         fibers_metadata.append(fiber_metadata)
 
     return fibers_metadata
 
 
-def update_fiber_photometry_metadata(metadata: dict, indicator: str, excitation_wavelength_in_nm: int) -> dict:
+def update_fiber_photometry_metadata(
+    metadata: dict,
+    indicator: str,
+    excitation_wavelength_in_nm: int,
+) -> dict:
     """Process extra metadata for the Vu 2024 fiber photometry dataset.
 
     Parameters
@@ -274,20 +292,21 @@ def update_fiber_photometry_metadata(metadata: dict, indicator: str, excitation_
     fiber_photometry_metadata = metadata_copy["Ophys"]["FiberPhotometry"]
     fiber_photometry_response_series_metadata = fiber_photometry_metadata["FiberPhotometryResponseSeries"][0]
 
-    if excitation_wavelength_in_nm == 470:
-        dichroic_mirror = "DichroicMirror2"
-    elif excitation_wavelength_in_nm == 405:
-        dichroic_mirror = "DichroicMirror2"
-    elif excitation_wavelength_in_nm == 570:
-        dichroic_mirror = "DichroicMirror3a"
-    else:
-        raise ValueError(f"Can't determine the dichroic mirror metadata for {excitation_wavelength_in_nm} excitation.")
+    emission_filter = "OpticalFilter525"
+    if indicator == "jRGECO1a":
+        emission_filter = "OpticalFilter570"
 
     fiber_photometry_response_series_metadata.update(
         indicator=indicator,
         excitation_source=f"ExcitationSource{excitation_wavelength_in_nm}",
         excitation_filter=f"OpticalFilter{excitation_wavelength_in_nm}",
-        dichroic_mirror=dichroic_mirror,
+        emission_filter=emission_filter,
+        dichroic_mirror="DichroicMirror1",
     )
+
+    # For dual-wavelength excitation we'll add a second dichroic mirror
+    if excitation_wavelength_in_nm == 570:
+        second_dichroic_mirror = "DichroicMirror2"
+        fiber_photometry_response_series_metadata.update(dichroic_mirror2=second_dichroic_mirror)
 
     return metadata_copy

@@ -3,17 +3,27 @@ Ophys:
     FiberPhotometryTable:
        name: FiberPhotometryTable
        description: Contains the metadata for the fiber photometry experiment.
+    FiberPhotometryResponseSeries:
+      - name: FiberPhotometryResponseSeries
+        description: Raw fluorescence traces acquired with multi-fiber array implanted in the striatum.
+        indicator: GCaMP7f
+        optical_fiber: FiberArray
+        excitation_source: ExcitationSource470
+        dichroic_mirror: DichroicMirror1
+        excitation_filter: OpticalFilter470
+        emission_filter: OpticalFilter525
+        photodetector: CMOSCamera
     OpticalFibers:
-      - name: Fiber34
+      - name: FiberArray
         description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
-          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication), 
-          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61). 
-          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially. 
+          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication),
+          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61).
+          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially.
           Separation was calculated to achieve maximal coverage of the striatum volume with no overlap in the collection fields of individual fibers.
-          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary. 
-          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade. 
-          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth, 
-          uniform fiber bundle surface for imaging. 
+          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary.
+          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade.
+          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth,
+          uniform fiber bundle surface for imaging.
           A larger diameter post was mounted on one side of the plastic grid to facilitate holding during implantation.
         manufacturer: Fiber Optics Tech
         model: not specified
@@ -21,14 +31,14 @@ Ophys:
         core_diameter_in_um: 34.0
       - name: Fiber46
         description: The optical fiber used in a multi-fiber arrays configuration, fabricated in-house to enable large scale measurements across deep brain volumes.
-          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication), 
-          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61). 
-          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially. 
+          Bare fibers were cut into pieces (ca. 3cm) then mounted under a microscope into 55-60μm diameter holes in a custom 3D printed grid (3mm W x 5mm L, Boston Micro Fabrication),
+          measured under a dissection microscope to target a particular depth beneath the grid, and secured in place with UV glue (Norland Optical Adhesive 61).
+          Each array contained between 30 and 103 fibers separated by a minimum of 220μm radially and 250μm axially.
           Separation was calculated to achieve maximal coverage of the striatum volume with no overlap in the collection fields of individual fibers.
-          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary. 
-          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade. 
-          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth, 
-          uniform fiber bundle surface for imaging. 
+          Fibers were cut with a fiber scribe, and the distal ends were inspected to ensure a uniform cut, and re-cut as necessary.
+          Distal ends were then glued inside an 1cm ca. section of polyimide tube (0.8-1.3mm diameter, MicroLumen) then cut with a fresh razorblade.
+          The bundled fibers inside the tube were then polished on fine grained polishing paper (ThorLabs,polished first with 6 μm, followed by 3 μm) to create a smooth,
+          uniform fiber bundle surface for imaging.
           A larger diameter post was mounted on one side of the plastic grid to facilitate holding during implantation.
         manufacturer: Fiber Optics Tech
         model: not specified
@@ -96,14 +106,14 @@ Ophys:
         center_wavelength_in_nm: 405.0
         bandwidth_in_nm: 10.0
         filter_type: Bandpass
-      - name: OpticalFilter473
+      - name: OpticalFilter470
         description: The band-pass filter used to isolate the 470 nm excitation light.
         manufacturer: Chroma
         model: ET473/24
         center_wavelength_in_nm: 473.0
         bandwidth_in_nm: 24.0
         filter_type: Bandpass
-      - name: OpticalFilter555
+      - name: OpticalFilter570
         description: The band-pass filter used to isolate the 570 nm excitation light.
         manufacturer: Chroma
         model: ET555/25
@@ -117,7 +127,7 @@ Ophys:
         center_wavelength_in_nm: 525.0
         bandwidth_in_nm: 50.0
         filter_type: Bandpass
-    EdgeOpticalFilter:
+    EdgeOpticalFilters:
       - name: OpticalFilter570
         description: The band-pass filter used to isolate the red emitted light after passing through a dichroic (Chroma, No. 532rdc) that reflected green and passed red fluorescence.
         manufacturer: Chroma
@@ -126,7 +136,7 @@ Ophys:
         filter_type: Longpass
     DichroicMirrors:
       - name: DichroicMirror1
-        description: The dichroic mirror used to reflect green and pass red fluorescence 
+        description: The dichroic mirror used to reflect green and pass red fluorescence
         manufacturer: Chroma Tech Corp
         model: ZT532rdc
         cut_on_wavelength_in_nm: 532.0
@@ -136,20 +146,20 @@ Ophys:
         description: The dichroic mirror used to direct the excitation light
         manufacturer: Chroma Tech Corp
         model: 405rdc
-        cut_on_wavelength_in_nm: 405
+        cut_on_wavelength_in_nm: 405.0
         transmission_band_in_nm: [430.0, 820.0]
         reflection_band_in_nm: [387.0, 420.0]
       - name: DichroicMirror3a
         description: The dichroic mirror used to reflect the excitation light. A multiband beamsplitter described by DichroicMirror3a and DichroicMirror3b.
         manufacturer: Chroma Tech Corp
         model: 59009bs
-        cut_on_wavelength_in_nm: 523
+        cut_on_wavelength_in_nm: 523.0
         transmission_band_in_nm: [510.0, 540.0]
       - name: DichroicMirror3b
         description: The dichroic mirror used to reflect the excitation light. A multiband beamsplitter described by DichroicMirror3a and DichroicMirror3b.
         manufacturer: Chroma Tech Corp
         model: 59009bs
-        cut_on_wavelength_in_nm: 640
+        cut_on_wavelength_in_nm: 640.0
         transmission_band_in_nm: [590.0, 680.0]
     Indicator:
       - name: GCaMP7f
@@ -170,4 +180,10 @@ Ophys:
       - name: tdTomato
         description: Red static marker
         label: pAAV-CAG-tdTomato(codon diversified-AAV1)
-
+    Photodetectors:
+      - name: CMOSCamera
+        description: A tube lens in each path (Thor labs, No TTL165-A, detected wavelength bandwidth 350-700 nm) focused emission light onto the CMOS sensors of the cameras to form an image of the fiber bundle.
+        manufacturer: Hamamatsu Photonics
+        model: Orca Fusion BT Gen III
+        detector_type: CMOS sensor
+        detected_wavelength_in_nm: 525.0

@@ -1,0 +1,19 @@
+Ophys:
+  Device:
+    - name: HamamatsuMicroscope
+      manufacturer: Hamamatsu Photonics
+  ImagingPlane:
+    - name: ImagingPlane
+      description: Imaging plane for the two-photon microscope.
+      device: HamamatsuMicroscope
+      # excitation_lambda
+      # indicatior
+      # location
+  TwoPhotonSeries:
+    - name: TwoPhotonSeries
+      description: Two-photon imaging acquired at 30 Hz with Hamamatsu microscope.
+      imaging_plane: ImagingPlane
+    - name: TwoPhotonSeriesMotionCorrected
+      description: The motion corrected two-photon imaging data.
+      imaging_plane: ImagingPlane
+      unit: n.a.

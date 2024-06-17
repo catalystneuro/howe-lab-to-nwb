@@ -10,7 +10,8 @@ Ophys:
         optical_fiber: FiberArray
         excitation_source: ExcitationSource470
         dichroic_mirror: DichroicMirror1
-        excitation_filter: OpticalFilter473
+        excitation_filter: OpticalFilter470
+        emission_filter: OpticalFilter525
         photodetector: CMOSCamera
     OpticalFibers:
       - name: FiberArray
@@ -126,7 +127,7 @@ Ophys:
         center_wavelength_in_nm: 525.0
         bandwidth_in_nm: 50.0
         filter_type: Bandpass
-    EdgeOpticalFilter:
+    EdgeOpticalFilters:
       - name: OpticalFilter570
         description: The band-pass filter used to isolate the red emitted light after passing through a dichroic (Chroma, No. 532rdc) that reflected green and passed red fluorescence.
         manufacturer: Chroma
@@ -184,6 +185,5 @@ Ophys:
         description: A tube lens in each path (Thor labs, No TTL165-A, detected wavelength bandwidth 350-700 nm) focused emission light onto the CMOS sensors of the cameras to form an image of the fiber bundle.
         manufacturer: Hamamatsu Photonics
         model: Orca Fusion BT Gen III
-        detector_type: camera
-        # not sure where to get this https://www.hamamatsu.com/content/dam/hamamatsu-photonics/sites/documents/99_SALES_LIBRARY/sys/SCAS0143E_C15440-20UP.pdf
+        detector_type: CMOS sensor
         detected_wavelength_in_nm: 525.0

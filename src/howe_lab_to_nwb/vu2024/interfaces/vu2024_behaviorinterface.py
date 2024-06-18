@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from neuroconv import BaseTemporalAlignmentInterface
 from neuroconv.tools import get_module
-from neuroconv.utils import FilePathType
+from neuroconv.utils import FilePathType, get_base_schema
 from pymatreader import read_mat
 from pynwb import NWBFile, TimeSeries
 from pynwb.behavior import CompassDirection
@@ -56,6 +56,48 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
 
     def set_aligned_timestamps(self, aligned_timestamps: np.ndarray) -> None:
         self._timestamps = np.array(aligned_timestamps)
+
+    def get_metadata_schema(self) -> dict:
+        metadata_schema = super().get_metadata_schema()
+        metadata_schema["properties"]["Behavior"] = get_base_schema(tag="Behavior")
+        metadata_schema["properties"]["Behavior"].update(
+            required=["CompassDirection", "TimeSeries", "TimeIntervals"],
+            properties=dict(
+                CompassDirection=dict(
+                    type="object",
+                    required=["SpatialSeries"],
+                    properties=dict(
+                        SpatialSeries=dict(
+                            type="object",
+                            required=["name", "description", "unit"],
+                            properties=dict(
+                                name=dict(type="string"),
+                                description=dict(type="string"),
+                                unit=dict(type="string"),
+                            ),
+                        ),
+                    ),
+                ),
+                TimeSeries=dict(
+                    type="object",
+                    required=["name", "description", "unit"],
+                    properties=dict(
+                        name=dict(type="string"),
+                        description=dict(type="string"),
+                        unit=dict(type="string"),
+                    ),
+                ),
+                TimeIntervals=dict(
+                    type="object",
+                    required=["name", "description"],
+                    properties=dict(
+                        name=dict(type="string"),
+                        description=dict(type="string"),
+                    ),
+                ),
+            ),
+        )
+        return metadata_schema
 
     def get_metadata(self):
         metadata = super().get_metadata()

@@ -6,8 +6,8 @@ from neuroconv import BaseTemporalAlignmentInterface
 from neuroconv.tools import get_module
 from neuroconv.utils import FilePathType
 from pymatreader import read_mat
-from pynwb import NWBFile
-from pynwb.behavior import SpatialSeries, CompassDirection, BehavioralTimeSeries
+from pynwb import NWBFile, TimeSeries
+from pynwb.behavior import CompassDirection
 from pynwb.epoch import TimeIntervals
 
 
@@ -69,13 +69,10 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
                     unit="degrees/s",
                 ),
             ),
-            BehavioralTimeSeries=dict(
-                SpatialSeries=dict(
-                    name="SpatialSeries",
-                    description="Velocity for the roll and pitch (x, y) measured in m/s.",
-                    reference_frame="unknown",
-                    unit="m/s",
-                ),
+            TimeSeries=dict(
+                name="Velocity",
+                description="Velocity for the roll and pitch (x, y) measured in m/s.",
+                unit="m/s",
             ),
             TimeIntervals=dict(
                 name="TimeIntervals",
@@ -123,17 +120,14 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
         )
         behavior.add(compass_direction)
 
-        behavioral_time_series_metadata = behavior_metadata["BehavioralTimeSeries"]["SpatialSeries"]
-        behavioral_time_series = BehavioralTimeSeries(name="BehavioralTimeSeries")
-
+        velocity_metadata = behavior_metadata["TimeSeries"]
         data = np.column_stack((behavior_data["ballRoll"], behavior_data["ballPitch"]))
-        spatial_series = SpatialSeries(
-            **behavioral_time_series_metadata,
+        velocity_xy = TimeSeries(
+            **velocity_metadata,
             data=data[:end_frame],
             timestamps=timestamps,
         )
-        behavioral_time_series.add_timeseries(spatial_series)
-        behavior.add(behavioral_time_series)
+        behavior.add(velocity_xy)
 
     def _get_start_end_times(self, binary_event_data: np.ndarray):
 

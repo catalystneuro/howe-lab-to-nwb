@@ -4,7 +4,11 @@ from neuroconv import NWBConverter
 from neuroconv.datainterfaces import TiffImagingInterface
 from neuroconv.utils import DeepDict
 
-from howe_lab_to_nwb.vu2024.interfaces import Vu2024FiberPhotometryInterface, CxdImagingInterface
+from howe_lab_to_nwb.vu2024.interfaces import (
+    Vu2024FiberPhotometryInterface,
+    CxdImagingInterface,
+    Vu2024SegmentationInterface,
+)
 
 
 class Vu2024NWBConverter(NWBConverter):
@@ -14,6 +18,7 @@ class Vu2024NWBConverter(NWBConverter):
         Imaging=CxdImagingInterface,
         ProcessedImaging=TiffImagingInterface,
         FiberPhotometry=Vu2024FiberPhotometryInterface,
+        Segmentation=Vu2024SegmentationInterface,
     )
 
     def get_metadata_schema(self) -> dict:

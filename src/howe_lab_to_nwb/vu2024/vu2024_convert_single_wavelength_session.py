@@ -31,15 +31,31 @@ def single_wavelength_session_to_nwb(
 
     Parameters
     ----------
+    raw_imaging_file_path : Union[str, Path]
+        The path to the .cxd file containing the raw imaging data.
     raw_fiber_photometry_file_path : Union[str, Path]
         The path to the .mat file containing the raw fiber photometry data.
     fiber_locations_file_path : Union[str, Path]
         The path to the .xlsx file containing the fiber locations.
+    excitation_wavelength_in_nm : int
+        The excitation wavelength in nm.
+    indicator : str
+        The name of the indicator used for the fiber photometry recording.
     ttl_file_path : Union[str, Path]
         The path to the .mat file containing the TTL signals.
+    motion_corrected_imaging_file_path : Union[str, Path]
+        The path to the .tif file containing the motion corrected imaging data.
+    behavior_file_path : Union[str, Path]
+        The path to the .mat file containing the processed behavior data.
+    nwbfile_path : Union[str, Path]
+        The path to the NWB file to be created.
+    behavior_avi_file_path : Union[str, Path], optional
+        The path to the .avi file containing the behavior camera recording. optional
     sampling_frequency : float, optional
         The sampling frequency of the data. If None, the sampling frequency will be read from the .cxd file.
         If missing from the file, the sampling frequency must be provided.
+    stub_test : bool, optional
+        Whether to run a stub test, by default False.
     """
 
     raw_fiber_photometry_file_path = Path(raw_fiber_photometry_file_path)

@@ -1,8 +1,10 @@
 """Primary NWBConverter class for this dataset."""
 
 from neuroconv import NWBConverter
-from neuroconv.datainterfaces import TiffImagingInterface
+from neuroconv.datainterfaces import TiffImagingInterface, VideoInterface
+from neuroconv.tools.signal_processing import get_rising_frames_from_ttl
 from neuroconv.utils import DeepDict
+from pymatreader import read_mat
 
 from howe_lab_to_nwb.vu2024.interfaces import (
     CxdImagingInterface,
@@ -19,6 +21,7 @@ class Vu2024NWBConverter(NWBConverter):
         ProcessedImaging=TiffImagingInterface,
         FiberPhotometry=Vu2024FiberPhotometryInterface,
         Behavior=Vu2024BehaviorInterface,
+        Video=VideoInterface,
     )
 
     def get_metadata_schema(self) -> dict:
@@ -49,3 +52,13 @@ class Vu2024NWBConverter(NWBConverter):
         # The timestamps from the fiber photometry data is from the TTL signals
         fiber_photometry_timestamps = fiber_photometry.get_timestamps()
         imaging.set_aligned_timestamps(aligned_timestamps=fiber_photometry_timestamps)
+
+        if "Video" in self.data_interface_objects:
+            video = self.data_interface_objects["Video"]
+            video_timestamps = video.get_timestamps()
+            ttl_file_path = fiber_photometry.source_data["ttl_file_path"]
+            ttl_data = read_mat(filename=ttl_file_path)
+            first_ttl_frame = get_rising_frames_from_ttl(trace=ttl_data["ttlIn3"])[0]
+            video.set_aligned_segment_starting_times(
+                aligned_segment_starting_times=[video_timestamps[0][first_ttl_frame]]
+            )

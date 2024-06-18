@@ -2,3 +2,4 @@ pymatreader==0.0.32
 ndx-fiber-photometry@git+https://github.com/catalystneuro/ndx-fiber-photometry.git@main
 openpyxl==3.1.2
 aicsimageio>=4.14.0
+neuroconv[video]

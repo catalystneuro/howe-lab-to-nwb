@@ -6,6 +6,7 @@ Ophys:
     - name: ImagingPlane
       description: Imaging plane for the two-photon microscope.
       device: HamamatsuMicroscope
+      location: STR
       # excitation_lambda
       # indicatior
       # location

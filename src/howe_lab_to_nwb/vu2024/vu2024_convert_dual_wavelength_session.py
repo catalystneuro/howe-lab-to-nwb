@@ -56,10 +56,14 @@ def dual_wavelength_session_to_nwb(
     first_frame_indices, second_frame_indices = None, None
     if len(set(raw_imaging_file_paths)) != len(raw_imaging_file_paths):
         # we need the frame_indices for the imaging data
-        matin = read_mat(behavior_file_paths[0])
-        first_frame_indices = list(matin["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
-        matin = read_mat(behavior_file_paths[1])
-        second_frame_indices = list(matin["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
+        if len(behavior_file_paths) != len(raw_imaging_file_paths):
+            raise ValueError("The number of behavior file paths must match the number of imaging files.")
+        first_behavior_data = read_mat(behavior_file_paths[0])
+        if "orig_frame_numbers" not in first_behavior_data:
+            raise ValueError(f"Expected 'orig_frame_numbers' is not in '{behavior_file_paths[0]}'.")
+        first_frame_indices = list(first_behavior_data["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
+        second_behavior_data = read_mat(behavior_file_paths[1])
+        second_frame_indices = list(second_behavior_data["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
 
     # Add data from the first excitation wavelength
     nwbfile = single_wavelength_session_to_nwb(

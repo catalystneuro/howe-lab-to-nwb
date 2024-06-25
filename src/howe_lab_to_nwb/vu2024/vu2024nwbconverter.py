@@ -21,7 +21,8 @@ class Vu2024NWBConverter(NWBConverter):
         ProcessedImaging=TiffImagingInterface,
         FiberPhotometry=Vu2024FiberPhotometryInterface,
         Behavior=Vu2024BehaviorInterface,
-        Video=VideoInterface,
+        Video1=VideoInterface,
+        Video2=VideoInterface,
     )
 
     def get_metadata_schema(self) -> dict:
@@ -53,12 +54,14 @@ class Vu2024NWBConverter(NWBConverter):
         fiber_photometry_timestamps = fiber_photometry.get_timestamps()
         imaging.set_aligned_timestamps(aligned_timestamps=fiber_photometry_timestamps)
 
-        if "Video" in self.data_interface_objects:
-            video = self.data_interface_objects["Video"]
-            video_timestamps = video.get_timestamps()
+        video_interfaces = [self.data_interface_objects[key] for key in self.data_interface_objects if "Video" in key]
+        # TODO: need to know which TTL stream to use for each video interface
+        ttl_stream_names = ["ttlIn3", "ttlIn4"]
+        for video_interface, ttl_stream_name in zip(video_interfaces, ttl_stream_names):
+            video_timestamps = video_interface.get_timestamps()
             ttl_file_path = fiber_photometry.source_data["ttl_file_path"]
             ttl_data = read_mat(filename=ttl_file_path)
-            first_ttl_frame = get_rising_frames_from_ttl(trace=ttl_data["ttlIn3"])[0]
-            video.set_aligned_segment_starting_times(
+            first_ttl_frame = get_rising_frames_from_ttl(trace=ttl_data[ttl_stream_name])[0]
+            video_interface.set_aligned_segment_starting_times(
                 aligned_segment_starting_times=[video_timestamps[0][first_ttl_frame]]
             )

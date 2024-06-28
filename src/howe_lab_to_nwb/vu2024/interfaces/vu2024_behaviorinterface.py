@@ -30,7 +30,8 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
         Parameters
         ----------
         file_path : FilePathType
-            Path to the .mat file that contains the fiber photometry data.
+            Path to the .mat file that contains the "binned" behavior data.
+            ("*ttlIn1_movie1.mat" files)
         verbose : bool, default: True
             controls verbosity.
         """

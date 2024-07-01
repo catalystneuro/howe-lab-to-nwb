@@ -211,6 +211,8 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
 
         event_dfs = []
         for event_name in ["lick", "reward", "stimulus_led", "stimulus_sound"]:
+            if event_name not in behavior_data:
+                continue
             start_times, end_times = self._get_start_end_times(binary_event_data=behavior_data[event_name])
             if not len(start_times):
                 continue

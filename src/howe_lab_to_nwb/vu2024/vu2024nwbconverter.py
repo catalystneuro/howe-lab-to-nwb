@@ -10,10 +10,6 @@ from howe_lab_to_nwb.vu2024.interfaces import (
     CxdImagingInterface,
     Vu2024FiberPhotometryInterface,
     Vu2024BehaviorInterface,
-)
-from howe_lab_to_nwb.vu2024.interfaces import (
-    Vu2024FiberPhotometryInterface,
-    CxdImagingInterface,
     Vu2024SegmentationInterface,
 )
 

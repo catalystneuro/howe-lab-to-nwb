@@ -62,8 +62,6 @@ def single_wavelength_session_to_nwb(
         The path to the .mat file containing the processed behavior data.
     nwbfile_path : Union[str, Path]
         The path to the NWB file to be created.
-    behavior_avi_file_path : Union[str, Path], optional
-        The path to the .avi file containing the behavior camera recording. optional
     sampling_frequency : float, optional
         The sampling frequency of the data. If None, the sampling frequency will be read from the .cxd file.
         If missing from the file, the sampling frequency must be provided.
@@ -75,12 +73,11 @@ def single_wavelength_session_to_nwb(
     conversion_options = dict()
 
     # Add raw imaging data
-    if raw_imaging_file_path is not None:
-        imaging_source_data = dict(file_path=str(raw_imaging_file_path), frame_indices=frame_indices)
-        if sampling_frequency is not None:
-            imaging_source_data.update(sampling_frequency=sampling_frequency)
-        source_data.update(dict(Imaging=imaging_source_data))
-        conversion_options.update(dict(Imaging=dict(stub_test=stub_test, photon_series_index=0)))
+    imaging_source_data = dict(file_path=str(raw_imaging_file_path), frame_indices=frame_indices)
+    if sampling_frequency is not None:
+        imaging_source_data.update(sampling_frequency=sampling_frequency)
+    source_data.update(dict(Imaging=imaging_source_data))
+    conversion_options.update(dict(Imaging=dict(stub_test=stub_test, photon_series_index=0)))
 
     # Add raw fiber photometry
     source_data.update(
@@ -132,10 +129,20 @@ def single_wavelength_session_to_nwb(
     source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
     conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))
 
-    # Add behavior camera recording
-    if behavior_avi_file_path is not None:
-        source_data.update(dict(Video=dict(file_paths=[str(behavior_avi_file_path)])))
-        conversion_options.update(dict(Video=dict(stub_test=stub_test)))
+    # Add behavior camera recording (optional)
+    subject_id = raw_fiber_photometry_file_path.parent.parent.name
+    behavior_avi_file_paths = list(raw_fiber_photometry_file_path.parent.glob(f"{subject_id}*.avi"))
+    for avi_file_ind, behavior_avi_file_path in enumerate(behavior_avi_file_paths):
+        video_key = f"Video{avi_file_ind + 1}"
+        source_data.update(
+            {
+                video_key: dict(
+                    file_paths=[str(behavior_avi_file_path)],
+                    metadata_key_name=video_key,
+                )
+            }
+        )
+        conversion_options.update({video_key: dict(stub_test=stub_test)})
 
     converter = Vu2024NWBConverter(source_data=source_data)
 
@@ -209,8 +216,6 @@ if __name__ == "__main__":
     fiber_locations_file_path = Path("/Volumes/t7-ssd/Howe/DL18/DL18_fiber_locations.xlsx")
     motion_corrected_imaging_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC.tif")
     behavior_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31_ttlIn1_movie1.mat")
-    # optional
-    behavior_camera_recording = Path("/Volumes/t7-ssd/Howe/DL18/211110/DL18-lick-11102021161113-0000.avi")
 
     # The sampling frequency of the raw imaging data must be provided when it cannot be extracted from the .cxd file
     sampling_frequency = None
@@ -231,7 +236,6 @@ if __name__ == "__main__":
         indicator=indicator,
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_path,
         behavior_file_path=behavior_file_path,
-        behavior_avi_file_path=behavior_camera_recording,
         nwbfile_path=nwbfile_path,
         sampling_frequency=sampling_frequency,
         stub_test=stub_test,

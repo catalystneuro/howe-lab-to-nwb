@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, List, Optional
 
 from neuroconv.datainterfaces.ophys.baseimagingextractorinterface import BaseImagingExtractorInterface
 from neuroconv.utils import FilePathType, DeepDict
@@ -17,12 +17,19 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
 
     Extractor = CxdImagingExtractor
 
+    @classmethod
+    def get_source_schema(cls) -> dict:
+        source_schema = super().get_source_schema()
+        source_schema["properties"]["frame_indices"].update(type=["array", "null"])
+        return source_schema
+
     def __init__(
         self,
         file_path: FilePathType,
         channel_name: str = None,
         plane_name: str = None,
         sampling_frequency: float = None,
+        frame_indices: list = None,
         verbose: bool = True,
     ):
         """
@@ -39,6 +46,8 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
         sampling_frequency : float, optional
             The sampling frequency of the data. If None, the sampling frequency will be read from the file.
             If missing from the file, the sampling frequency must be provided.
+        frame_indices : list, optional
+            List of frame indices to extract. If None, all frames will be extracted.
         verbose : bool, default: True
             controls verbosity.
         """
@@ -47,6 +56,7 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
             channel_name=channel_name,
             plane_name=plane_name,
             sampling_frequency=sampling_frequency,
+            frame_indices=frame_indices,
             verbose=verbose,
         )
 

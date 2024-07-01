@@ -1,15 +1,15 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional, List
 
 from dateutil import tz
 from neuroconv.utils import load_dict_from_file, dict_deep_update
+from pynwb import NWBFile
 
 from howe_lab_to_nwb.vu2024 import Vu2024NWBConverter
 from howe_lab_to_nwb.vu2024.extractors.bioformats_utils import extract_ome_metadata, parse_ome_metadata
-from howe_lab_to_nwb.vu2024.utils import get_fiber_locations
-from howe_lab_to_nwb.vu2024.utils.add_fiber_photometry import update_fiber_photometry_metadata
+from howe_lab_to_nwb.vu2024.utils import get_fiber_locations, update_ophys_metadata, update_fiber_photometry_metadata
 
 
 def single_wavelength_session_to_nwb(
@@ -19,13 +19,16 @@ def single_wavelength_session_to_nwb(
     excitation_wavelength_in_nm: int,
     indicator: str,
     ttl_file_path: Union[str, Path],
-    motion_corrected_imaging_file_path: Union[str, Path],
+    ttl_stream_name: str,
     behavior_file_path: Union[str, Path],
-    nwbfile_path: Union[str, Path],
+    motion_corrected_imaging_file_path: Optional[Union[str, Path]] = None,
+    frame_indices: Optional[List[int]] = None,
+    nwbfile_path: Optional[Union[str, Path]] = None,
+    nwbfile: Optional[NWBFile] = None,
     behavior_avi_file_path: Union[str, Path] = None,
     sampling_frequency: float = None,
     stub_test: bool = False,
-):
+) -> NWBFile:
     """
     Convert a session of data to NWB format.
 
@@ -43,6 +46,16 @@ def single_wavelength_session_to_nwb(
         The name of the indicator used for the fiber photometry recording.
     ttl_file_path : Union[str, Path]
         The path to the .mat file containing the TTL signals.
+    ttl_stream_name : str
+        The name of the TTL stream (e.g. 'ttlIn1').
+    motion_corrected_imaging_file_path : Union[str, Path], optional
+        The path to the .tif file containing the motion corrected imaging data.
+    frame_indices : List[int], optional
+        The list of frame indices to extract from the raw imaging data. If None, all frames will be extracted.
+    nwbfile_path : Union[str, Path], optional
+        The path to the NWB file to write. If None, the NWBFile object will be returned.
+    nwbfile : NWBFile, optional
+        An in-memory NWBFile object to add the data to. If None, a new NWBFile object will be created.
     motion_corrected_imaging_file_path : Union[str, Path]
         The path to the .tif file containing the motion corrected imaging data.
     behavior_file_path : Union[str, Path]
@@ -58,16 +71,16 @@ def single_wavelength_session_to_nwb(
         Whether to run a stub test, by default False.
     """
 
-    raw_fiber_photometry_file_path = Path(raw_fiber_photometry_file_path)
-
     source_data = dict()
     conversion_options = dict()
 
     # Add raw imaging data
-    imaging_source_data = dict(file_path=str(raw_imaging_file_path))
-    if sampling_frequency is not None:
-        imaging_source_data.update(sampling_frequency=sampling_frequency)
-    source_data.update(dict(Imaging=imaging_source_data))
+    if raw_imaging_file_path is not None:
+        imaging_source_data = dict(file_path=str(raw_imaging_file_path), frame_indices=frame_indices)
+        if sampling_frequency is not None:
+            imaging_source_data.update(sampling_frequency=sampling_frequency)
+        source_data.update(dict(Imaging=imaging_source_data))
+        conversion_options.update(dict(Imaging=dict(stub_test=stub_test, photon_series_index=0)))
 
     # Add raw fiber photometry
     source_data.update(
@@ -75,29 +88,29 @@ def single_wavelength_session_to_nwb(
             FiberPhotometry=dict(
                 file_path=str(raw_fiber_photometry_file_path),
                 ttl_file_path=str(ttl_file_path),
+                ttl_stream_name=ttl_stream_name,
             )
         )
     )
     conversion_options.update(dict(FiberPhotometry=dict(stub_test=stub_test)))
-    conversion_options.update(dict(Imaging=dict(stub_test=stub_test, photon_series_index=0)))
-
-    # We need the sampling frequency from the raw imaging data
-    if sampling_frequency is None:
-        ome_metadata = extract_ome_metadata(file_path=raw_imaging_file_path)
-        parsed_metadata = parse_ome_metadata(metadata=ome_metadata)
-        sampling_frequency = parsed_metadata["sampling_frequency"]
 
     # Add motion corrected imaging data
-    source_data.update(
-        dict(
-            ProcessedImaging=dict(
-                file_path=str(motion_corrected_imaging_file_path), sampling_frequency=sampling_frequency
+    if motion_corrected_imaging_file_path is not None:
+        # We need the sampling frequency from the raw imaging data
+        if sampling_frequency is None:
+            ome_metadata = extract_ome_metadata(file_path=raw_imaging_file_path)
+            parsed_metadata = parse_ome_metadata(metadata=ome_metadata)
+            sampling_frequency = parsed_metadata["sampling_frequency"]
+        source_data.update(
+            dict(
+                ProcessedImaging=dict(
+                    file_path=str(motion_corrected_imaging_file_path), sampling_frequency=sampling_frequency
+                )
             )
         )
-    )
-    conversion_options.update(
-        dict(ProcessedImaging=dict(stub_test=stub_test, photon_series_index=1, parent_container="processing/ophys"))
-    )
+        conversion_options.update(
+            dict(ProcessedImaging=dict(stub_test=stub_test, photon_series_index=1, parent_container="processing/ophys"))
+        )
 
     # Add fiber locations
     fiber_locations_metadata = get_fiber_locations(fiber_locations_file_path)
@@ -137,23 +150,52 @@ def single_wavelength_session_to_nwb(
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
 
+    ophys_metadata = load_dict_from_file(Path(__file__).parent / "metadata" / "vu2024_ophys_metadata.yaml")
+    metadata = dict_deep_update(metadata, ophys_metadata)
+
+    # Load the default metadata for fiber photometry
     fiber_photometry_metadata = load_dict_from_file(
         Path(__file__).parent / "metadata" / "vu2024_fiber_photometry_metadata.yaml"
     )
-    fiber_photometry_metadata = update_fiber_photometry_metadata(
+    # Update metadata with the excitation wavelength and indicator
+    excitation_wavelength_to_photon_series_name = {
+        470: "Green",
+        405: "GreenIsosbestic",
+        570: "Red",
+    }
+
+    name_suffix = excitation_wavelength_to_photon_series_name[excitation_wavelength_in_nm]
+    fiber_photometry_response_series_name = f"FiberPhotometryResponseSeries{name_suffix}"
+    updated_fiber_photometry_metadata = update_fiber_photometry_metadata(
         metadata=fiber_photometry_metadata,
+        fiber_photometry_response_series_name=fiber_photometry_response_series_name,
+        excitation_wavelength_in_nm=excitation_wavelength_in_nm,
+        indicator=indicator,
+    )
+    metadata = dict_deep_update(metadata, updated_fiber_photometry_metadata)
+
+    # Update metadata with the excitation wavelength and indicator
+    metadata = update_ophys_metadata(
+        metadata=metadata,
+        two_photon_series_name=f"TwoPhotonSeries{name_suffix}",
         excitation_wavelength_in_nm=excitation_wavelength_in_nm,
         indicator=indicator,
     )
 
-    metadata = dict_deep_update(metadata, fiber_photometry_metadata)
+    if nwbfile is None:
+        nwbfile = converter.create_nwbfile(metadata=metadata, conversion_options=conversion_options)
+    else:
+        converter.add_to_nwbfile(nwbfile=nwbfile, metadata=metadata, conversion_options=conversion_options)
 
-    ophys_metadata = load_dict_from_file(Path(__file__).parent / "metadata" / "vu2024_ophys_metadata.yaml")
-    metadata = dict_deep_update(metadata, ophys_metadata)
+    if nwbfile_path is None:
+        return nwbfile
 
-    # Run conversion
     converter.run_conversion(
-        metadata=metadata, nwbfile_path=nwbfile_path, conversion_options=conversion_options, overwrite=True
+        nwbfile_path=nwbfile_path,
+        nwbfile=nwbfile,
+        metadata=metadata,
+        conversion_options=conversion_options,
+        overwrite=True,
     )
 
 
@@ -163,6 +205,7 @@ if __name__ == "__main__":
     raw_imaging_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217.cxd")
     raw_fiber_photometry_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC_ROIs.mat")
     ttl_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31.mat")
+    ttl_stream_name = "ttlIn1"
     fiber_locations_file_path = Path("/Volumes/t7-ssd/Howe/DL18/DL18_fiber_locations.xlsx")
     motion_corrected_imaging_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC.tif")
     behavior_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31_ttlIn1_movie1.mat")
@@ -182,6 +225,7 @@ if __name__ == "__main__":
         raw_imaging_file_path=raw_imaging_file_path,
         raw_fiber_photometry_file_path=raw_fiber_photometry_file_path,
         ttl_file_path=ttl_file_path,
+        ttl_stream_name=ttl_stream_name,
         fiber_locations_file_path=fiber_locations_file_path,
         excitation_wavelength_in_nm=excitation_wavelength_in_nm,
         indicator=indicator,

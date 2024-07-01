@@ -175,7 +175,9 @@ def add_fiber_photometry_series(
     add_photometry_device(nwbfile, device_metadata=emission_filter_metadata, device_type="BandOpticalFilter")
 
     num_fibers = data.shape[1]
-    if len(fiber_photometry_table) == 0:
+    default_series_name = fiber_photometry_metadata["FiberPhotometryResponseSeries"][0]["name"]
+
+    if default_series_name not in nwbfile.acquisition:
         for fiber_ind in range(num_fibers):
             brain_area = fiber_locations_metadata[fiber_ind]["location"]
             is_good_fiber = True if brain_area else False
@@ -193,7 +195,8 @@ def add_fiber_photometry_series(
                 emission_filter=nwbfile.devices[emission_filter_to_add],
             )
 
-        table_region = table_region or list(range(num_fibers))
+        if table_region is None:
+            table_region = list(range(num_fibers))
         fiber_photometry_table_region = fiber_photometry_table.create_fiber_photometry_table_region(
             region=table_region, description="source fibers"
         )
@@ -205,7 +208,7 @@ def add_fiber_photometry_series(
         else:
             timing_kwargs.update(timestamps=timestamps)
     else:
-        raw_fiber_photometry_response_series = nwbfile.acquisition["FiberPhotometryResponseSeries"]
+        raw_fiber_photometry_response_series = nwbfile.acquisition[default_series_name]
         fiber_photometry_table_region = raw_fiber_photometry_response_series.fiber_photometry_table_region
         if raw_fiber_photometry_response_series.timestamps is not None:
             timing_kwargs = dict(timestamps=raw_fiber_photometry_response_series.timestamps)
@@ -269,6 +272,7 @@ def get_fiber_locations(file_path: FilePathType) -> List[dict]:
 
 def update_fiber_photometry_metadata(
     metadata: dict,
+    fiber_photometry_response_series_name: str,
     indicator: str,
     excitation_wavelength_in_nm: int,
 ) -> dict:
@@ -278,6 +282,8 @@ def update_fiber_photometry_metadata(
     ----------
     metadata : dict
         The metadata dictionary containing the metadata for the fiber photometry setup.
+    fiber_photometry_response_series_name : str
+        The name of the fiber photometry response series.
     indicator : str
         The name of the indicator used in the experiment (e.g 'dLight1.3b', 'GCaMP7f').
     excitation_wavelength_in_nm : int
@@ -289,6 +295,7 @@ def update_fiber_photometry_metadata(
         The updated metadata dictionary.
     """
     metadata_copy = deepcopy(metadata)
+
     fiber_photometry_metadata = metadata_copy["Ophys"]["FiberPhotometry"]
     fiber_photometry_response_series_metadata = fiber_photometry_metadata["FiberPhotometryResponseSeries"][0]
 
@@ -297,6 +304,7 @@ def update_fiber_photometry_metadata(
         emission_filter = "OpticalFilter570"
 
     fiber_photometry_response_series_metadata.update(
+        name=fiber_photometry_response_series_name,
         indicator=indicator,
         excitation_source=f"ExcitationSource{excitation_wavelength_in_nm}",
         excitation_filter=f"OpticalFilter{excitation_wavelength_in_nm}",
@@ -308,5 +316,76 @@ def update_fiber_photometry_metadata(
     if excitation_wavelength_in_nm == 570:
         second_dichroic_mirror = "DichroicMirror2"
         fiber_photometry_response_series_metadata.update(dichroic_mirror2=second_dichroic_mirror)
+
+    return metadata_copy
+
+
+def update_ophys_metadata(
+    metadata: dict,
+    indicator: str,
+    excitation_wavelength_in_nm: int,
+    two_photon_series_name: str,
+) -> dict:
+    """Process extra metadata for the Vu 2024 fiber photometry dataset.
+
+    Parameters
+    ----------
+    metadata : dict
+        The metadata dictionary containing the metadata for the fiber photometry setup.
+    two_photon_series_name : str
+        The name of the two-photon series.
+    indicator : str
+        The name of the indicator used in the experiment (e.g 'dLight1.3b', 'GCaMP7f').
+    excitation_wavelength_in_nm : int
+        The excitation wavelength in nm.
+
+
+    Returns
+    -------
+    dict
+        The updated metadata dictionary.
+    """
+    metadata_copy = deepcopy(metadata)
+
+    indicator_to_emission_wavelength = defaultdict(lambda: np.nan)
+    indicator_to_emission_wavelength.update(
+        {
+            "GCaMP7f": 509.0,
+            "dLight1.3b": 511.0,
+            "jRGECO1a": 581.0,
+            "Ach3.0": 525.0,
+        },
+    )
+
+    # Update ImagingPlane metadata
+    imaging_plane_metadata = metadata_copy["Ophys"]["ImagingPlane"][0]
+    if "optical_channel" in imaging_plane_metadata:
+        optical_channel_metadata = imaging_plane_metadata["optical_channel"][0]
+        optical_channel_name = "Red" if indicator == "jRGECO1a" else "Green"
+        optical_channel_metadata.update(
+            name=optical_channel_name,
+            emission_lambda=indicator_to_emission_wavelength[indicator],
+        )
+
+        name_suffix = two_photon_series_name.replace("TwoPhotonSeries", "")
+        imaging_plane_name = f"ImagingPlane{name_suffix}"
+        imaging_plane_metadata.update(
+            name=imaging_plane_name,
+            excitation_lambda=float(excitation_wavelength_in_nm),
+            indicator=indicator,
+        )
+
+        two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][0]
+        two_photon_series_metadata.update(
+            name=two_photon_series_name,
+            imaging_plane=imaging_plane_name,
+        )
+
+        if len(metadata_copy["Ophys"]["TwoPhotonSeries"]) > 1:
+            two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][1]
+            two_photon_series_metadata.update(
+                name=f"TwoPhotonSeriesMotionCorrected{name_suffix}",
+                imaging_plane=imaging_plane_name,
+            )
 
     return metadata_copy

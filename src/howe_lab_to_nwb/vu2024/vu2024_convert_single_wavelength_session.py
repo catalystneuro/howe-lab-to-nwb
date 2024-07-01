@@ -20,10 +20,12 @@ def single_wavelength_session_to_nwb(
     indicator: str,
     ttl_file_path: Union[str, Path],
     ttl_stream_name: str,
+    behavior_file_path: Union[str, Path],
     motion_corrected_imaging_file_path: Optional[Union[str, Path]] = None,
     frame_indices: Optional[List[int]] = None,
     nwbfile_path: Optional[Union[str, Path]] = None,
     nwbfile: Optional[NWBFile] = None,
+    behavior_avi_file_path: Union[str, Path] = None,
     sampling_frequency: float = None,
     stub_test: bool = False,
 ) -> NWBFile:
@@ -39,9 +41,9 @@ def single_wavelength_session_to_nwb(
     fiber_locations_file_path : Union[str, Path]
         The path to the .xlsx file containing the fiber locations.
     excitation_wavelength_in_nm : int
-        The excitation wavelength in nm for the fiber photometry.
+        The excitation wavelength in nm.
     indicator : str
-        The indicator used for the fiber photometry.
+        The name of the indicator used for the fiber photometry recording.
     ttl_file_path : Union[str, Path]
         The path to the .mat file containing the TTL signals.
     ttl_stream_name : str
@@ -54,11 +56,19 @@ def single_wavelength_session_to_nwb(
         The path to the NWB file to write. If None, the NWBFile object will be returned.
     nwbfile : NWBFile, optional
         An in-memory NWBFile object to add the data to. If None, a new NWBFile object will be created.
+    motion_corrected_imaging_file_path : Union[str, Path]
+        The path to the .tif file containing the motion corrected imaging data.
+    behavior_file_path : Union[str, Path]
+        The path to the .mat file containing the processed behavior data.
+    nwbfile_path : Union[str, Path]
+        The path to the NWB file to be created.
+    behavior_avi_file_path : Union[str, Path], optional
+        The path to the .avi file containing the behavior camera recording. optional
     sampling_frequency : float, optional
         The sampling frequency of the data. If None, the sampling frequency will be read from the .cxd file.
         If missing from the file, the sampling frequency must be provided.
     stub_test : bool, optional
-        Whether to run the conversion as a stub test.
+        Whether to run a stub test, by default False.
     """
 
     source_data = dict()
@@ -107,6 +117,25 @@ def single_wavelength_session_to_nwb(
     conversion_options.update(
         dict(FiberPhotometry=dict(stub_test=stub_test, fiber_locations_metadata=fiber_locations_metadata))
     )
+
+    # Add ROI segmentation
+    accepted_list = [fiber_ind for fiber_ind, fiber in enumerate(fiber_locations_metadata) if fiber["location"] != ""]
+    roi_source_data = dict(
+        file_path=str(raw_fiber_photometry_file_path),
+        sampling_frequency=sampling_frequency,
+        accepted_list=accepted_list,
+    )
+    source_data.update(dict(Segmentation=roi_source_data))
+    conversion_options.update(dict(Segmentation=dict(stub_test=stub_test)))
+
+    # Add behavior
+    source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
+    conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))
+
+    # Add behavior camera recording
+    if behavior_avi_file_path is not None:
+        source_data.update(dict(Video=dict(file_paths=[str(behavior_avi_file_path)])))
+        conversion_options.update(dict(Video=dict(stub_test=stub_test)))
 
     converter = Vu2024NWBConverter(source_data=source_data)
 
@@ -179,6 +208,9 @@ if __name__ == "__main__":
     ttl_stream_name = "ttlIn1"
     fiber_locations_file_path = Path("/Volumes/t7-ssd/Howe/DL18/DL18_fiber_locations.xlsx")
     motion_corrected_imaging_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/Data00217_crop_MC.tif")
+    behavior_file_path = Path("/Volumes/t7-ssd/Howe/DL18/211110/GridDL-18_2021.11.10_16.12.31_ttlIn1_movie1.mat")
+    # optional
+    behavior_camera_recording = Path("/Volumes/t7-ssd/Howe/DL18/211110/DL18-lick-11102021161113-0000.avi")
 
     # The sampling frequency of the raw imaging data must be provided when it cannot be extracted from the .cxd file
     sampling_frequency = None
@@ -198,6 +230,8 @@ if __name__ == "__main__":
         excitation_wavelength_in_nm=excitation_wavelength_in_nm,
         indicator=indicator,
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_path,
+        behavior_file_path=behavior_file_path,
+        behavior_avi_file_path=behavior_camera_recording,
         nwbfile_path=nwbfile_path,
         sampling_frequency=sampling_frequency,
         stub_test=stub_test,

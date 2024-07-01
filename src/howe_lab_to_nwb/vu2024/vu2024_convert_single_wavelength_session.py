@@ -20,12 +20,11 @@ def single_wavelength_session_to_nwb(
     indicator: str,
     ttl_file_path: Union[str, Path],
     ttl_stream_name: str,
-    behavior_file_path: Union[str, Path],
+    behavior_file_path: Optional[Union[str, Path]] = None,
     motion_corrected_imaging_file_path: Optional[Union[str, Path]] = None,
     frame_indices: Optional[List[int]] = None,
     nwbfile_path: Optional[Union[str, Path]] = None,
     nwbfile: Optional[NWBFile] = None,
-    behavior_avi_file_path: Union[str, Path] = None,
     sampling_frequency: float = None,
     stub_test: bool = False,
 ) -> NWBFile:
@@ -58,7 +57,7 @@ def single_wavelength_session_to_nwb(
         An in-memory NWBFile object to add the data to. If None, a new NWBFile object will be created.
     motion_corrected_imaging_file_path : Union[str, Path]
         The path to the .tif file containing the motion corrected imaging data.
-    behavior_file_path : Union[str, Path]
+    behavior_file_path : Union[str, Path], optional
         The path to the .mat file containing the processed behavior data.
     nwbfile_path : Union[str, Path]
         The path to the NWB file to be created.
@@ -92,12 +91,12 @@ def single_wavelength_session_to_nwb(
     conversion_options.update(dict(FiberPhotometry=dict(stub_test=stub_test)))
 
     # Add motion corrected imaging data
+    if sampling_frequency is None:
+        ome_metadata = extract_ome_metadata(file_path=raw_imaging_file_path)
+        parsed_metadata = parse_ome_metadata(metadata=ome_metadata)
+        sampling_frequency = parsed_metadata["sampling_frequency"]
     if motion_corrected_imaging_file_path is not None:
         # We need the sampling frequency from the raw imaging data
-        if sampling_frequency is None:
-            ome_metadata = extract_ome_metadata(file_path=raw_imaging_file_path)
-            parsed_metadata = parse_ome_metadata(metadata=ome_metadata)
-            sampling_frequency = parsed_metadata["sampling_frequency"]
         source_data.update(
             dict(
                 ProcessedImaging=dict(
@@ -126,8 +125,9 @@ def single_wavelength_session_to_nwb(
     conversion_options.update(dict(Segmentation=dict(stub_test=stub_test)))
 
     # Add behavior
-    source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
-    conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))
+    if behavior_file_path is not None:
+        source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
+        conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))
 
     # Add behavior camera recording (optional)
     subject_id = raw_fiber_photometry_file_path.parent.parent.name

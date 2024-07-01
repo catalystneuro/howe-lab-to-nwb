@@ -57,9 +57,15 @@ class Vu2024NWBConverter(NWBConverter):
         imaging.set_aligned_timestamps(aligned_timestamps=fiber_photometry_timestamps)
 
         video_interfaces = [self.data_interface_objects[key] for key in self.data_interface_objects if "Video" in key]
-        # TODO: need to know which TTL stream to use for each video interface
-        ttl_stream_names = ["ttlIn3", "ttlIn4"]
-        for video_interface, ttl_stream_name in zip(video_interfaces, ttl_stream_names):
+        for video_interface in video_interfaces:
+            video_file_path = video_interface.source_data["file_paths"][0]
+            if any(part in video_file_path for part in ["body", "top"]):
+                ttl_stream_name = "ttlIn3"
+            elif any(part in video_file_path for part in ["lick", "face", "side"]):
+                ttl_stream_name = "ttlIn4"
+            else:
+                raise ValueError(f"Could not determine TTL stream for video file {video_file_path}.")
+
             video_timestamps = video_interface.get_timestamps()
             ttl_file_path = fiber_photometry.source_data["ttl_file_path"]
             ttl_data = read_mat(filename=ttl_file_path)

@@ -358,6 +358,8 @@ def update_ophys_metadata(
     )
 
     # Update ImagingPlane metadata
+    name_suffix = two_photon_series_name.replace("TwoPhotonSeries", "")
+    imaging_plane_name = f"ImagingPlane{name_suffix}"
     imaging_plane_metadata = metadata_copy["Ophys"]["ImagingPlane"][0]
     if "optical_channel" in imaging_plane_metadata:
         optical_channel_metadata = imaging_plane_metadata["optical_channel"][0]
@@ -367,8 +369,6 @@ def update_ophys_metadata(
             emission_lambda=indicator_to_emission_wavelength[indicator],
         )
 
-        name_suffix = two_photon_series_name.replace("TwoPhotonSeries", "")
-        imaging_plane_name = f"ImagingPlane{name_suffix}"
         imaging_plane_metadata.update(
             name=imaging_plane_name,
             excitation_lambda=float(excitation_wavelength_in_nm),
@@ -387,5 +387,7 @@ def update_ophys_metadata(
                 name=f"TwoPhotonSeriesMotionCorrected{name_suffix}",
                 imaging_plane=imaging_plane_name,
             )
+    plane_segmentation_metadata = metadata_copy["Ophys"]["ImageSegmentation"]["plane_segmentations"][0]
+    plane_segmentation_metadata.update(imaging_plane=imaging_plane_name)
 
     return metadata_copy

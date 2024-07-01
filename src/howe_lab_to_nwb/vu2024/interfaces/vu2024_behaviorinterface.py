@@ -99,7 +99,7 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
             ],
             TimeIntervals=dict(
                 name="TimeIntervals",
-                description="The onset times of the events (licking, tone, light or reward delivery).",
+                description="Mice were presented with either visual (blue LED) or auditory (12 kHz tone) stimuli at random intervals (4–40 s). For experiments with water reward delivery, a water spout mounted on a post delivered water rewards (9 μL, Figure 1B) at random time intervals (randomly drawn from a 5-30s uniform distribution) through a water spout and solenoid valve gated electronically. Licking was monitored by a capacitive touch circuit connected to the spout.",
             ),
         )
 
@@ -169,59 +169,55 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
         )
         behavior.add(velocity_xy)
 
-    def _get_start_end_times(self, binary_event_data: np.ndarray):
-
-        timestamps = self.get_timestamps()
-        ones_indices = np.where(binary_event_data == 1)[0]
-        if not len(ones_indices):
-            return [], []
-
-        # Calculate the differences between consecutive indices
-        diff = np.diff(ones_indices)
-
-        # Find where the difference is not 1
-        ends = np.where(diff != 1)[0]
-
-        # The start of an interval is one index after the end of the previous interval
-        starts = ends + 1
-
-        # Handle the case for the first interval
-        starts = np.insert(starts, 0, 0)
-
-        # Handle the case for the last interval
-        ends = np.append(ends, len(ones_indices) - 1)
-
-        # Return the start and end times of the intervals
-        start_times = timestamps[ones_indices[starts]]
-        end_times = timestamps[ones_indices[ends]]
-
-        return start_times, end_times
-
     def add_binary_signals(self, nwbfile: NWBFile, metadata: dict):
+        """
+        Add the binary signals (licking, light, tone, and reward delivery) to the NWBFile.
+        The onset and offset times are determined by the changes in the binary signals.
+        # Reference for calculation: https://zenodo.org/records/10272874 salientStim_getTrialTimes.m
+        """
         behavior_data = read_mat(filename=self.source_data["file_path"])
+        timestamps = self.get_timestamps()
 
         events_metadata = metadata["Behavior"]["TimeIntervals"]
 
         event_name_mapping = dict(
+            stimulus_led="Light",
+            stimulus_led2="Light",
+            stimulus_sound="Tone",
             lick="Lick",
             reward="Reward",
-            stimulus_led="Light",
-            stimulus_sound="Tone",
         )
 
         event_dfs = []
-        for event_name in ["lick", "reward", "stimulus_led", "stimulus_sound"]:
+        for event_name in event_name_mapping.keys():
             if event_name not in behavior_data:
                 continue
-            start_times, end_times = self._get_start_end_times(binary_event_data=behavior_data[event_name])
-            if not len(start_times):
+
+            event_data = behavior_data[event_name].astype(int)
+
+            # Find the indices where stimulus_led changes from 0 to 1 (stimulus on)
+            stim_on = np.where(np.diff(event_data) == 1)[0] + 1
+            if not len(stim_on):
                 continue
+
+            # Find the indices where stimulus_led changes from 1 to 0 (stimulus off)
+            stim_off = np.where(np.diff(event_data) == -1)[0] + 1
+
+            # Sort the indices to ensure they are in order
+            stim_on = sorted(stim_on)
+            stim_off = sorted(stim_off)
+
+            # Adjust for mismatches
+            if stim_off[0] < stim_on[0]:
+                stim_off = stim_off[1:]
+            if stim_on[-1] > stim_off[-1]:
+                stim_on = stim_on[:-1]
 
             event_dfs.append(
                 pd.DataFrame(
                     {
-                        "start_time": start_times,
-                        "stop_time": end_times,
+                        "start_time": timestamps[stim_on],
+                        "stop_time": timestamps[stim_off],
                         "event_type": event_name_mapping[event_name],
                     }
                 )

@@ -10,6 +10,7 @@ from howe_lab_to_nwb.vu2024.interfaces import (
     CxdImagingInterface,
     Vu2024FiberPhotometryInterface,
     Vu2024BehaviorInterface,
+    Vu2024SegmentationInterface,
 )
 
 
@@ -22,6 +23,7 @@ class Vu2024NWBConverter(NWBConverter):
         FiberPhotometry=Vu2024FiberPhotometryInterface,
         Behavior=Vu2024BehaviorInterface,
         Video=VideoInterface,
+        Segmentation=Vu2024SegmentationInterface,
     )
 
     def get_metadata_schema(self) -> dict:

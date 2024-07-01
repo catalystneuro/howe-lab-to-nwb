@@ -105,6 +105,16 @@ def single_wavelength_session_to_nwb(
         dict(FiberPhotometry=dict(stub_test=stub_test, fiber_locations_metadata=fiber_locations_metadata))
     )
 
+    # Add ROI segmentation
+    accepted_list = [fiber_ind for fiber_ind, fiber in enumerate(fiber_locations_metadata) if fiber["location"] != ""]
+    roi_source_data = dict(
+        file_path=str(raw_fiber_photometry_file_path),
+        sampling_frequency=sampling_frequency,
+        accepted_list=accepted_list,
+    )
+    source_data.update(dict(Segmentation=roi_source_data))
+    conversion_options.update(dict(Segmentation=dict(stub_test=stub_test)))
+
     # Add behavior
     source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
     conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))

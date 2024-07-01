@@ -76,6 +76,7 @@ def dual_wavelength_session_to_nwb(
         ttl_file_path=ttl_file_path,
         ttl_stream_name=ttl_stream_names[0],
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[0],
+        behavior_file_path=behavior_file_paths[0],
         stub_test=stub_test,
     )
 
@@ -111,6 +112,11 @@ if __name__ == "__main__":
         session_folder_path / "R600_AP9_117_crop_MC_ROIs_new.mat",
     ]
 
+    behavior_file_paths = [
+        session_folder_path / "chatdat600_AP9_470_570_2021.08.21_10.48.07_aligned_ttlIn1_movie1.mat",
+        session_folder_path / "chatdat600_AP9_470_570_2021.08.21_10.48.07_aligned_ttlIn2_movie1.mat",
+    ]
+
     ttl_file_path = session_folder_path / "chatdat600_AP9_470_570_2021.08.21_10.48.07.mat"
     ttl_stream_names = ["ttlIn1", "ttlIn2"]
 
@@ -130,6 +136,7 @@ if __name__ == "__main__":
         fiber_locations_file_path=fiber_locations_file_path,
         excitation_wavelengths_in_nm=excitation_wavelengths_in_nm,
         indicators=indicators,
+        behavior_file_paths=behavior_file_paths,
         nwbfile_path=nwbfile_path,
         stub_test=stub_test,
     )

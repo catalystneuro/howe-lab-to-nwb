@@ -73,12 +73,11 @@ def single_wavelength_session_to_nwb(
     conversion_options = dict()
 
     # Add raw imaging data
-    if raw_imaging_file_path is not None:
-        imaging_source_data = dict(file_path=str(raw_imaging_file_path), frame_indices=frame_indices)
-        if sampling_frequency is not None:
-            imaging_source_data.update(sampling_frequency=sampling_frequency)
-        source_data.update(dict(Imaging=imaging_source_data))
-        conversion_options.update(dict(Imaging=dict(stub_test=stub_test, photon_series_index=0)))
+    imaging_source_data = dict(file_path=str(raw_imaging_file_path), frame_indices=frame_indices)
+    if sampling_frequency is not None:
+        imaging_source_data.update(sampling_frequency=sampling_frequency)
+    source_data.update(dict(Imaging=imaging_source_data))
+    conversion_options.update(dict(Imaging=dict(stub_test=stub_test, photon_series_index=0)))
 
     # Add raw fiber photometry
     source_data.update(

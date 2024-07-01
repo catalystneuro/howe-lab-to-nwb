@@ -11,6 +11,7 @@ from pymatreader import read_mat
 from pynwb import NWBFile
 
 from howe_lab_to_nwb.vu2024.utils import add_fiber_photometry_series
+from howe_lab_to_nwb.vu2024.utils.add_fiber_photometry import add_fiber_photometry_table
 
 
 class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
@@ -26,7 +27,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         self,
         file_path: FilePathType,
         ttl_file_path: FilePathType,
-        ttl_stream_name: str = None,
+        ttl_stream_name: str,
         verbose: bool = True,
     ):
         """
@@ -39,7 +40,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         ttl_file_path : FilePathType
             Path to the .mat file that contains the TTL signals.
         ttl_stream_name : str, optional
-            Name of the TTL stream to extract from the TTL signals.
+            Name of the TTL stream to extract from the TTL signals. Default is 'ttlIn1'.
         verbose : bool, default: True
             controls verbosity.
         """
@@ -63,7 +64,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
 
     def get_original_timestamps(self) -> np.ndarray:
         filename = self.source_data["ttl_file_path"]
-        ttl_stream_name = self.source_data["ttl_stream_name"] or "ttlIn1"
+        ttl_stream_name = self.source_data["ttl_stream_name"]
         ttl_data = read_mat(filename=filename)
         rising_frames = get_rising_frames_from_ttl(trace=ttl_data[ttl_stream_name])
         timestamps = ttl_data["timestamp"]
@@ -73,7 +74,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
     def get_timestamps(self, stub_test: bool = False) -> np.ndarray:
         timestamps = self._timestamps if self._timestamps is not None else self.get_original_timestamps()
         if stub_test:
-            return timestamps[:6000]
+            return timestamps[:100]
         return timestamps
 
     def set_aligned_timestamps(self, aligned_timestamps: np.ndarray) -> None:
@@ -99,70 +100,78 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         fiber_photometry_data = read_mat(filename=self.source_data["file_path"])
         timestamps = self.get_timestamps(stub_test=stub_test)
 
+        if "F" not in fiber_photometry_data:
+            raise ValueError(f"Expected raw fluorescence 'F' is not in '{self.source_data['file_path']}'.")
         raw_fluorescence = fiber_photometry_data["F"]
-        data_to_add = raw_fluorescence if not stub_test else raw_fluorescence[:6000]
-        fiber_table_region = list(range(data_to_add.shape[1]))
+        data_to_add = raw_fluorescence if not stub_test else raw_fluorescence[:100]
+
+        add_fiber_photometry_table(nwbfile=nwbfile, metadata=metadata)
+        fiber_photometry_table = nwbfile.lab_meta_data["FiberPhotometry"].fiber_photometry_table
+        fiber_table_region = list(np.array(range(data_to_add.shape[1])) + len(fiber_photometry_table))
 
         if len(fiber_locations_metadata) != data_to_add.shape[1]:
             raise ValueError(
                 f"Number of fiber locations ({len(fiber_locations_metadata)}) does not match the number of fibers "
                 f"({data_to_add.shape[1]})."
             )
-
+        fluorescence_metadata = metadata["Ophys"]["FiberPhotometry"]["FiberPhotometryResponseSeries"][0]
+        fiber_photometry_series_name = fluorescence_metadata["name"]
         # Add raw fiber photometry data to NWBFile
         add_fiber_photometry_series(
             nwbfile=nwbfile,
             metadata=metadata,
             data=data_to_add,
             timestamps=timestamps,
-            fiber_photometry_series_name="FiberPhotometryResponseSeries",
+            fiber_photometry_series_name=fiber_photometry_series_name,
             fiber_locations_metadata=fiber_locations_metadata,
             table_region=fiber_table_region,
         )
 
         # Add baseline fluorescence data to NWBFile
-        # TODO: clarify whether to add F_baseline2 as well, what is the difference between F_baseline and F_baseline2?
-        baseline_fluorescence = fiber_photometry_data["F_baseline"]
-        baseline_data_to_add = baseline_fluorescence if not stub_test else baseline_fluorescence[:6000]
-        metadata_copy = deepcopy(metadata)
-        fluorescence_metadata = metadata_copy["Ophys"]["FiberPhotometry"]["FiberPhotometryResponseSeries"][0]
-        description = fluorescence_metadata["description"]
-        description = description.replace("Raw", "Baseline")
-        fluorescence_metadata.update(
-            name="BaselineFiberPhotometryResponseSeries",
-            description=description,
-        )
-        add_fiber_photometry_series(
-            nwbfile=nwbfile,
-            metadata=metadata_copy,
-            data=baseline_data_to_add,
-            timestamps=timestamps,
-            fiber_photometry_series_name="BaselineFiberPhotometryResponseSeries",
-            fiber_locations_metadata=fiber_locations_metadata,
-            table_region=fiber_table_region,
-            parent_container="processing/ophys",
-        )
+        if "F_baseline" in fiber_photometry_data:
+            baseline_fluorescence = fiber_photometry_data["F_baseline"]
+            baseline_data_to_add = baseline_fluorescence if not stub_test else baseline_fluorescence[:100]
+            fluorescence_metadata = deepcopy(metadata["Ophys"]["FiberPhotometry"]["FiberPhotometryResponseSeries"][0])
+            fiber_photometry_series_name = f"Baseline{fluorescence_metadata['name']}"
+            description = fluorescence_metadata["description"]
+            description = description.replace("Raw", "Baseline")
+            fluorescence_metadata.update(
+                name=fiber_photometry_series_name,
+                description=description,
+            )
+            metadata["Ophys"]["FiberPhotometry"]["FiberPhotometryResponseSeries"].append(fluorescence_metadata)
+            add_fiber_photometry_series(
+                nwbfile=nwbfile,
+                metadata=metadata,
+                data=baseline_data_to_add,
+                timestamps=timestamps,
+                fiber_photometry_series_name=fiber_photometry_series_name,
+                fiber_locations_metadata=fiber_locations_metadata,
+                table_region=fiber_table_region,
+                parent_container="processing/ophys",
+            )
 
         # Add baseline corrected fluorescence data to NWBFile
-        # TODO: clarify whether to add Fc2 as well, what is the difference between Fc and Fc2?
-        corrected_fluorescence = fiber_photometry_data["Fc"]
-        corrected_data_to_add = corrected_fluorescence if not stub_test else corrected_fluorescence[:6000]
-        metadata_copy = deepcopy(metadata)
-        fluorescence_metadata = metadata_copy["Ophys"]["FiberPhotometry"]["FiberPhotometryResponseSeries"][0]
-        description = fluorescence_metadata["description"]
-        description = description.replace("Raw", "Baseline corrected (DF/F)")
-        fluorescence_metadata.update(
-            name="DfOverFFiberPhotometryResponseSeries",
-            description=description,
-        )
+        if "Fc" in fiber_photometry_data:
+            corrected_fluorescence = fiber_photometry_data["Fc"]
+            corrected_data_to_add = corrected_fluorescence if not stub_test else corrected_fluorescence[:100]
+            fluorescence_metadata = deepcopy(metadata["Ophys"]["FiberPhotometry"]["FiberPhotometryResponseSeries"][0])
+            fiber_photometry_series_name = f"DfOverF{fluorescence_metadata['name']}"
+            description = fluorescence_metadata["description"]
+            description = description.replace("Raw", "Baseline corrected (DF/F)")
+            fluorescence_metadata.update(
+                name=fiber_photometry_series_name,
+                description=description,
+            )
+            metadata["Ophys"]["FiberPhotometry"]["FiberPhotometryResponseSeries"].append(fluorescence_metadata)
 
-        add_fiber_photometry_series(
-            nwbfile=nwbfile,
-            metadata=metadata_copy,
-            data=corrected_data_to_add,
-            timestamps=timestamps,
-            fiber_photometry_series_name="DfOverFFiberPhotometryResponseSeries",
-            fiber_locations_metadata=fiber_locations_metadata,
-            table_region=fiber_table_region,
-            parent_container="processing/ophys",
-        )
+            add_fiber_photometry_series(
+                nwbfile=nwbfile,
+                metadata=metadata,
+                data=corrected_data_to_add,
+                timestamps=timestamps,
+                fiber_photometry_series_name=fiber_photometry_series_name,
+                fiber_locations_metadata=fiber_locations_metadata,
+                table_region=fiber_table_region,
+                parent_container="processing/ophys",
+            )

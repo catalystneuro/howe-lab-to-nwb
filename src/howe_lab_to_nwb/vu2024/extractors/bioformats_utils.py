@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -41,6 +42,10 @@ def extract_ome_metadata(
         Path to the file.
     """
     check_file_format_is_supported(file_path)
+
+    if "JAVA_HOME" not in os.environ:
+        conda_home = os.environ.get("CONDA_PREFIX")
+        os.environ["JAVA_HOME"] = conda_home
 
     with aicsimageio.readers.bioformats_reader.BioFile(file_path) as reader:
         ome_metadata = reader.ome_metadata

@@ -191,12 +191,12 @@ if __name__ == "__main__":
     # Whether to run the conversion as a stub test
     # When set to True, write only a subset of the data for each session
     # When set to False, write the entire data for each session
-    stub_test = True
+    stub_test = False
 
     convert_all_sessions(
         data_table_path=data_table_excel_file_path,
         folder_path=folder_path,
         nwbfile_folder_path=nwbfile_folder_path,
-        stub_test=True,
-        overwrite=False,
+        stub_test=stub_test,
+        overwrite=overwrite,
     )

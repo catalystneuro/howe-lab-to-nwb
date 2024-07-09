@@ -64,11 +64,9 @@ class Vu2024NWBConverter(NWBConverter):
         if imaging.source_data["frame_indices"] is not None:
             # we must fix the timestamps for fiber photometry
             frame_indices = imaging.source_data["frame_indices"]
-            timestamps = fiber_photometry_timestamps[frame_indices]
-            fiber_photometry.set_aligned_timestamps(aligned_timestamps=timestamps)
-            imaging.set_aligned_timestamps(aligned_timestamps=timestamps)
-        else:
-            imaging.set_aligned_timestamps(aligned_timestamps=fiber_photometry_timestamps)
+            fiber_photometry_timestamps = fiber_photometry_timestamps[frame_indices]
+            fiber_photometry.set_aligned_timestamps(aligned_timestamps=fiber_photometry_timestamps)
+        imaging.set_aligned_timestamps(aligned_timestamps=fiber_photometry_timestamps)
 
         video_interfaces = [self.data_interface_objects[key] for key in self.data_interface_objects if "Video" in key]
         for video_interface in video_interfaces:
@@ -80,13 +78,13 @@ class Vu2024NWBConverter(NWBConverter):
             else:
                 raise ValueError(f"Could not determine TTL stream for video file {video_file_path}.")
 
-            video_timestamps = video_interface.get_timestamps()
             ttl_file_path = fiber_photometry.source_data["ttl_file_path"]
             ttl_data = read_mat(filename=ttl_file_path)
-            first_ttl_frame = get_rising_frames_from_ttl(trace=ttl_data[ttl_stream_name])[0]
-            video_interface.set_aligned_segment_starting_times(
-                aligned_segment_starting_times=[video_timestamps[0][first_ttl_frame]]
-            )
+            rising_frames = get_rising_frames_from_ttl(trace=ttl_data[ttl_stream_name])
+            video_timestamps = ttl_data["timestamp"][rising_frames]
+            if len(video_timestamps) > len(fiber_photometry_timestamps):
+                video_timestamps = video_timestamps[: len(fiber_photometry_timestamps)]
+            video_interface.set_aligned_timestamps(aligned_timestamps=[video_timestamps])
 
         self.aligned = True
 

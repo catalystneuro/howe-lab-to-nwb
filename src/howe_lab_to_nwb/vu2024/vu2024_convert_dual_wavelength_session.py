@@ -19,6 +19,7 @@ def dual_wavelength_session_to_nwb(
     nwbfile_path: Union[str, Path],
     behavior_file_paths: List[Union[str, Path]] = None,
     motion_corrected_imaging_file_paths: List[Union[str, Path]] = None,
+    subject_metadata: dict = None,
     stub_test: bool = False,
 ):
     """
@@ -46,6 +47,8 @@ def dual_wavelength_session_to_nwb(
         The list of paths to the .mat files containing the processed behavior data.
     motion_corrected_imaging_file_paths : List[Union[str, Path]], optional
         The list of paths to the .tif files containing the motion corrected imaging data.
+    subject_metadata : dict, optional
+        The metadata for the subject.
     stub_test : bool, optional
         Whether to run the conversion as a stub test.
     """
@@ -77,6 +80,7 @@ def dual_wavelength_session_to_nwb(
         ttl_stream_name=ttl_stream_names[0],
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[0],
         behavior_file_path=behavior_file_paths[0],
+        subject_metadata=subject_metadata,
         stub_test=stub_test,
     )
 

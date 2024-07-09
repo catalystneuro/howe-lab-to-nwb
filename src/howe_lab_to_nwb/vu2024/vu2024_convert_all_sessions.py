@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -40,7 +41,10 @@ def convert_all_sessions(
 
     """
 
-    data_table = pd.read_excel(data_table_path)
+    data_table_dict = pd.read_excel(data_table_path, sheet_name=["Sessions", "Mice"])
+    data_table = data_table_dict["Sessions"]
+    subjects_table = data_table_dict["Mice"].astype(str)
+
     folder_path = Path(folder_path)
 
     columns_to_group = ["Mouse", "Date (YYYYMMDD)"]
@@ -55,8 +59,22 @@ def convert_all_sessions(
 
     for (subject_id, date), table in progress_bar:
         experiment_type = "single-wavelength" if len(table) == 1 else "dual-wavelength"
-        subject_id = str(subject_id).replace("-", "")
 
+        mouse_metadata = subjects_table.loc[subjects_table["MouseID"] == str(subject_id)]
+        mouse_metadata = mouse_metadata.to_dict(orient="records")[0]
+        date_of_birth = datetime.strptime(mouse_metadata["Date of Birth"], "%Y-%m-%d")
+        subject_metadata = dict(
+            Subject=dict(
+                subject_id=mouse_metadata["MouseID"],
+                date_of_birth=date_of_birth,
+                sex=mouse_metadata["Sex"],
+                genotype=mouse_metadata["Genotype"],
+                strain=mouse_metadata["Strain"],
+                species="Mus musculus",
+            ),
+        )
+
+        subject_id = str(subject_id).replace("-", "")
         subject_folder_path = folder_path / subject_id
 
         behavior_file_name = table["Raw behavior file"].values[0]
@@ -143,6 +161,7 @@ def convert_all_sessions(
                 ttl_stream_names=ttl_stream_names,
                 behavior_file_paths=behavior_file_paths,
                 nwbfile_path=nwbfile_path,
+                subject_metadata=subject_metadata,
                 stub_test=stub_test,
             )
         elif experiment_type == "single-wavelength":
@@ -157,6 +176,7 @@ def convert_all_sessions(
                 ttl_stream_name=ttl_stream_names[0],
                 behavior_file_path=behavior_file_paths[0],
                 nwbfile_path=nwbfile_path,
+                subject_metadata=subject_metadata,
                 stub_test=stub_test,
             )
         progress_bar.update(1)
@@ -186,12 +206,12 @@ if __name__ == "__main__":
     nwbfile_folder_path = Path("/Volumes/t7-ssd/Howe/nwbfiles")
 
     # Whether to overwrite existing NWB files, default is False
-    overwrite = False
+    overwrite = True
 
     # Whether to run the conversion as a stub test
     # When set to True, write only a subset of the data for each session
     # When set to False, write the entire data for each session
-    stub_test = False
+    stub_test = True
 
     convert_all_sessions(
         data_table_path=data_table_excel_file_path,

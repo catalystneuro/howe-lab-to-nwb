@@ -206,12 +206,10 @@ if __name__ == "__main__":
     nwbfile_folder_path = Path("/Volumes/t7-ssd/Howe/nwbfiles")
 
     # Whether to overwrite existing NWB files, default is False
-    overwrite = True
 
     # Whether to run the conversion as a stub test
     # When set to True, write only a subset of the data for each session
     # When set to False, write the entire data for each session
-    stub_test = True
 
     convert_all_sessions(
         data_table_path=data_table_excel_file_path,

@@ -153,7 +153,10 @@ def single_wavelength_session_to_nwb(
     metadata = converter.get_metadata()
     session_start_time = metadata["NWBFile"]["session_start_time"]
     tzinfo = tz.gettz("US/Eastern")
-    metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=tzinfo))
+    metadata["NWBFile"].update(
+        session_start_time=session_start_time.replace(tzinfo=tzinfo),
+        session_id=session_id,
+    )
 
     # Update default metadata with the editable in the corresponding yaml file
     editable_metadata_path = Path(__file__).parent / "metadata" / "vu2024_general_metadata.yaml"

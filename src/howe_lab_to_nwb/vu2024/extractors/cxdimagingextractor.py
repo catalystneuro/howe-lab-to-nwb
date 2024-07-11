@@ -163,12 +163,15 @@ class CxdImagingExtractor(ImagingExtractor):
 
         with aicsimageio.readers.bioformats_reader.BioFile(file_path) as reader:
             self._video = reader.to_dask()
-            if frame_indices is not None:
-                assert len(frame_indices) > 0, "frame_indices must be a non-empty list."
-                assert (
-                    len(frame_indices) <= self._num_frames
-                ), "frame_indices must be less than or equal to the number of frames."
-                self._video = self._video[frame_indices, ...]
+
+        if frame_indices is not None:
+            assert len(frame_indices) > 0, "frame_indices must be a non-empty list."
+            assert (
+                len(frame_indices) <= self._num_frames
+            ), "frame_indices must be less than or equal to the number of frames."
+            self._video = self._video[frame_indices, ...]
+            self._times = self._times[frame_indices]
+            self._num_frames = len(frame_indices)
 
         super().__init__(file_path=file_path, channel_name=channel_name, plane_name=plane_name)
 

@@ -63,6 +63,7 @@ class CxdImagingExtractor(ImagingExtractor):
         channel_name: str = None,
         plane_name: str = None,
         sampling_frequency: float = None,
+        frame_indices: List[int] = None,
     ):
         r"""
         Create a CxdImagingExtractor instance from a CXD file produced by Hamamatsu Photonics.
@@ -91,6 +92,8 @@ class CxdImagingExtractor(ImagingExtractor):
         sampling_frequency : float
             The sampling frequency of the imaging data. (default=None)
             Has to be provided manually if not found in the metadata.
+        frame_indices : list, optional
+            List of frame indices to extract. If None, all frames will be extracted. (default=None)
         """
         from .bioformats_utils import extract_ome_metadata, parse_ome_metadata
 
@@ -160,6 +163,15 @@ class CxdImagingExtractor(ImagingExtractor):
 
         with aicsimageio.readers.bioformats_reader.BioFile(file_path) as reader:
             self._video = reader.to_dask()
+
+        if frame_indices is not None:
+            assert len(frame_indices) > 0, "frame_indices must be a non-empty list."
+            assert (
+                len(frame_indices) <= self._num_frames
+            ), "frame_indices must be less than or equal to the number of frames."
+            self._video = self._video[frame_indices, ...]
+            self._times = self._times[frame_indices]
+            self._num_frames = len(frame_indices)
 
         super().__init__(file_path=file_path, channel_name=channel_name, plane_name=plane_name)
 

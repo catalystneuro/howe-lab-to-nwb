@@ -1,7 +1,7 @@
 NWBFile:
   related_publications:
     - https://doi.org/10.1016/j.neuron.2023.12.011
-  session_description:
+  experiment_description: |
     Neural population dynamics relevant to behavior vary over multiple spatial and temporal scales across
     three-dimensional volumes. Current optical approaches lack the spatial coverage and resolution necessary to measure
     and manipulate naturally occurring patterns of large-scale, distributed dynamics within and across deep brain
@@ -13,6 +13,17 @@ NWBFile:
     response to salient sensory stimuli extending over millimeters of tissue. Targeted optogenetics enabled flexible
     control of neural signaling on multiple spatial scales, better matching endogenous signaling patterns, and the
     spatial localization of behavioral function across large circuits.
+  session_description: |
+    This dataset contains fiber photometry recordings from multi-fiber arrays implanted in the striatum in mice running
+    on a treadmill while receiving either visual (blue LED) or auditory (12 kHz tone) stimuli at random intervals (4–40 s).
+    Some sessions may include water reward delivery, where a water spout mounted on a post delivered water rewards (9 μL) at random time intervals (randomly drawn from a 5-30s uniform distribution) through a water spout and solenoid valve gated electronically.
+    Licking was monitored by a capacitive touch circuit connected to the spout.
+  keywords:
+    - multi-fiber photometry
+    - behaving mice
+    - freely moving mice
+    - striatum
+    - dopamine
   institution: Boston University
   lab: Howe
   experimenter:

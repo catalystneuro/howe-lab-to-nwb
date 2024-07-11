@@ -26,6 +26,7 @@ def single_wavelength_session_to_nwb(
     nwbfile_path: Optional[Union[str, Path]] = None,
     nwbfile: Optional[NWBFile] = None,
     sampling_frequency: float = None,
+    subject_metadata: Optional[dict] = None,
     stub_test: bool = False,
 ) -> NWBFile:
     """
@@ -64,6 +65,8 @@ def single_wavelength_session_to_nwb(
     sampling_frequency : float, optional
         The sampling frequency of the data. If None, the sampling frequency will be read from the .cxd file.
         If missing from the file, the sampling frequency must be provided.
+    subject_metadata : dict, optional
+        The metadata for the subject.
     stub_test : bool, optional
         Whether to run a stub test, by default False.
     """
@@ -150,12 +153,20 @@ def single_wavelength_session_to_nwb(
     metadata = converter.get_metadata()
     session_start_time = metadata["NWBFile"]["session_start_time"]
     tzinfo = tz.gettz("US/Eastern")
-    metadata["NWBFile"].update(session_start_time=session_start_time.replace(tzinfo=tzinfo))
+    metadata["NWBFile"].update(
+        session_start_time=session_start_time.replace(tzinfo=tzinfo),
+        session_id=session_id,
+    )
 
     # Update default metadata with the editable in the corresponding yaml file
     editable_metadata_path = Path(__file__).parent / "metadata" / "vu2024_general_metadata.yaml"
     editable_metadata = load_dict_from_file(editable_metadata_path)
     metadata = dict_deep_update(metadata, editable_metadata)
+
+    if subject_metadata is not None:
+        metadata = dict_deep_update(metadata, subject_metadata)
+        date_of_birth = metadata["Subject"]["date_of_birth"]
+        metadata["Subject"].update(date_of_birth=date_of_birth.replace(tzinfo=tzinfo))
 
     ophys_metadata = load_dict_from_file(Path(__file__).parent / "metadata" / "vu2024_ophys_metadata.yaml")
     metadata = dict_deep_update(metadata, ophys_metadata)

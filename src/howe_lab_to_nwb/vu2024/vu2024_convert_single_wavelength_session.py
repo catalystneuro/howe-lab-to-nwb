@@ -1,5 +1,5 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
-
+import os
 from pathlib import Path
 from typing import Union, Optional, List
 
@@ -134,6 +134,7 @@ def single_wavelength_session_to_nwb(
 
     # Add behavior camera recording (optional)
     subject_id = raw_fiber_photometry_file_path.parent.parent.name
+    session_id = raw_fiber_photometry_file_path.parent.name
     behavior_avi_file_paths = list(raw_fiber_photometry_file_path.parent.glob(f"{subject_id}*.avi"))
     for avi_file_ind, behavior_avi_file_path in enumerate(behavior_avi_file_paths):
         video_key = f"Video{avi_file_ind + 1}"
@@ -235,6 +236,8 @@ if __name__ == "__main__":
     indicator = "dLight1.3b"
 
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/GridDL-18_211110.nwb")
+    if not nwbfile_path.parent.exists():
+        os.makedirs(nwbfile_path.parent, exist_ok=True)
     stub_test = True
 
     single_wavelength_session_to_nwb(

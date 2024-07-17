@@ -119,7 +119,7 @@ def single_wavelength_session_to_nwb(
     )
 
     # Add ROI segmentation
-    accepted_list = [fiber_ind for fiber_ind, fiber in enumerate(fiber_locations_metadata) if fiber["location"] != ""]
+    accepted_list = [fiber_ind for fiber_ind, fiber in enumerate(fiber_locations_metadata) if fiber["included"]]
     roi_source_data = dict(
         file_path=str(raw_fiber_photometry_file_path),
         sampling_frequency=sampling_frequency,

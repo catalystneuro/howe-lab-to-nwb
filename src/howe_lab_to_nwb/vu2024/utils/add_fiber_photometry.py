@@ -53,7 +53,7 @@ def add_fiber_photometry_table(nwbfile: NWBFile, metadata: dict):
         description="The fiber tip coordinates (AP, ML, DV) in Allen Brain Atlas coordinates",
     )
     fiber_photometry_table.add_column(
-        name="is_good_fiber",
+        name="included",
         description="Whether this fiber has been successfully implanted.",
     )
 
@@ -180,9 +180,9 @@ def add_fiber_photometry_series(
     if default_series_name not in nwbfile.acquisition:
         for fiber_ind in range(num_fibers):
             brain_area = fiber_locations_metadata[fiber_ind]["location"]
-            is_good_fiber = True if brain_area else False
+            included = fiber_locations_metadata[fiber_ind]["included"]
             fiber_photometry_table.add_row(
-                is_good_fiber=is_good_fiber,
+                included=included,
                 location=brain_area,  # TODO: change this in the extension to brain_area
                 coordinates=fiber_locations_metadata[fiber_ind]["coordinates"],
                 allen_atlas_coordinates=fiber_locations_metadata[fiber_ind]["allen_atlas_coordinates"],
@@ -264,6 +264,7 @@ def get_fiber_locations(file_path: FilePathType) -> List[dict]:
             allen_atlas_coordinates=allen_atlas_coordinates,
             # TODO: rename to brain_area
             location=brain_area,
+            included=row["included"],
         )
         fibers_metadata.append(fiber_metadata)
 

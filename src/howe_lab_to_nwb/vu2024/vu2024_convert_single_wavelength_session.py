@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Union, Optional, List
 
 from dateutil import tz
+from neuroconv.tools.nwb_helpers import configure_and_write_nwbfile
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 from pynwb import NWBFile
 
@@ -118,7 +119,7 @@ def single_wavelength_session_to_nwb(
     )
 
     # Add ROI segmentation
-    accepted_list = [fiber_ind for fiber_ind, fiber in enumerate(fiber_locations_metadata) if fiber["location"] != ""]
+    accepted_list = [fiber_ind for fiber_ind, fiber in enumerate(fiber_locations_metadata) if fiber["included"]]
     roi_source_data = dict(
         file_path=str(raw_fiber_photometry_file_path),
         sampling_frequency=sampling_frequency,
@@ -209,13 +210,7 @@ def single_wavelength_session_to_nwb(
     if nwbfile_path is None:
         return nwbfile
 
-    converter.run_conversion(
-        nwbfile_path=nwbfile_path,
-        nwbfile=nwbfile,
-        metadata=metadata,
-        conversion_options=conversion_options,
-        overwrite=True,
-    )
+    configure_and_write_nwbfile(nwbfile=nwbfile, output_filepath=nwbfile_path)
 
 
 if __name__ == "__main__":

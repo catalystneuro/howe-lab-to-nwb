@@ -61,15 +61,12 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
         )
 
     def get_metadata(
-        self, photon_series_type: Literal["OnePhotonSeries", "TwoPhotonSeries"] = "TwoPhotonSeries"
+        self, photon_series_type: Literal["OnePhotonSeries", "TwoPhotonSeries"] = "OnePhotonSeries"
     ) -> DeepDict:
         metadata = super().get_metadata(photon_series_type=photon_series_type)
 
         device_name = "HamamatsuMicroscope"
-        metadata["Ophys"]["Device"][0].update(
-            name=device_name,
-            manufacturer="Hamamatsu Photonics",
-        )
+        metadata["Ophys"]["Device"][0].update(name=device_name)
         optical_channel_name = "OpticalChannel"  # TODO: add better channel name
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]
         optical_channel_metadata = imaging_plane_metadata["optical_channel"][0]

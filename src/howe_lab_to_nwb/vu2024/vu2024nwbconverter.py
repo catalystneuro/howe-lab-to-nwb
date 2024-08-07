@@ -13,6 +13,7 @@ from howe_lab_to_nwb.vu2024.interfaces import (
     Vu2024FiberPhotometryInterface,
     Vu2024BehaviorInterface,
     Vu2024SegmentationInterface,
+    Vu2024TiffImagingInterface,
 )
 
 
@@ -23,7 +24,7 @@ class Vu2024NWBConverter(NWBConverter):
 
     data_interface_classes = dict(
         Imaging=CxdImagingInterface,
-        ProcessedImaging=TiffImagingInterface,
+        ProcessedImaging=Vu2024TiffImagingInterface,
         FiberPhotometry=Vu2024FiberPhotometryInterface,
         Behavior=Vu2024BehaviorInterface,
         Segmentation=Vu2024SegmentationInterface,
@@ -40,17 +41,6 @@ class Vu2024NWBConverter(NWBConverter):
         )
 
         return metadata_schema
-
-    def get_metadata(self) -> DeepDict:
-        metadata = super().get_metadata()
-
-        # Overwrite the Ophys imaging metadata with the metadata from the CxdImagingInterface
-        imaging_interface_metadata = self.data_interface_objects["Imaging"].get_metadata()
-        metadata["Ophys"]["Device"] = imaging_interface_metadata["Ophys"]["Device"]
-        metadata["Ophys"]["ImagingPlane"] = imaging_interface_metadata["Ophys"]["ImagingPlane"]
-        metadata["Ophys"]["TwoPhotonSeries"] = imaging_interface_metadata["Ophys"]["TwoPhotonSeries"]
-
-        return metadata
 
     def temporally_align_data_interfaces(self):
         if self.aligned:

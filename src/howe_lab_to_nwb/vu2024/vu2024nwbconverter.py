@@ -3,6 +3,7 @@ from typing import Optional
 
 from neuroconv import NWBConverter
 from neuroconv.datainterfaces import TiffImagingInterface, VideoInterface
+from neuroconv.tools import get_module
 from neuroconv.tools.signal_processing import get_rising_frames_from_ttl
 from neuroconv.utils import DeepDict
 from pymatreader import read_mat
@@ -80,4 +81,8 @@ class Vu2024NWBConverter(NWBConverter):
 
     def add_to_nwbfile(self, nwbfile: NWBFile, metadata, conversion_options: Optional[dict] = None) -> None:
         self.temporally_align_data_interfaces()
+        # set custom description for the 'ophys' processing module
+        _ = get_module(
+            nwbfile=nwbfile, name="ophys", description="Constains the processed imaging and fiber photometry data."
+        )
         return super().add_to_nwbfile(nwbfile=nwbfile, metadata=metadata, conversion_options=conversion_options)

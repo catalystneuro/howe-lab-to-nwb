@@ -100,6 +100,11 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
         fiber_photometry_data = read_mat(filename=self.source_data["file_path"])
         timestamps = self.get_timestamps(stub_test=stub_test)
 
+        additional_device_metadata = metadata["Ophys"]["FiberPhotometry"]["Devices"]
+        for device_metadata in additional_device_metadata:
+            if device_metadata["name"] not in nwbfile.devices:
+                nwbfile.create_device(**device_metadata)
+
         if "F" not in fiber_photometry_data:
             raise ValueError(f"Expected raw fluorescence 'F' is not in '{self.source_data['file_path']}'.")
         raw_fluorescence = fiber_photometry_data["F"]

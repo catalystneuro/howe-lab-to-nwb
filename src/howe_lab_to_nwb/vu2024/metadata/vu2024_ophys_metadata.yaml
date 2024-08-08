@@ -2,19 +2,17 @@ Ophys:
   Device:
     - name: HamamatsuMicroscope
       manufacturer: Hamamatsu Photonics
+      description: The microscope (Hamamatsu Orca Fusion BT Gen III) used to acquire the image of the fiber bundle.
   ImagingPlane:
     - name: ImagingPlane
-      description: Imaging plane for the two-photon microscope.
+      description: Imaging plane for the one-photon microscope.
       device: HamamatsuMicroscope
       location: STR
-      # excitation_lambda
-      # indicatior
-      # location
-  TwoPhotonSeries:
-    - name: TwoPhotonSeries
-      description: Two-photon imaging acquired at 30 Hz with Hamamatsu microscope.
+  OnePhotonSeries:
+    - name: OnePhotonSeries
+      description: Fiber bundle imaging acquired using HCImage Live (Hamamatsu).
       imaging_plane: ImagingPlane
-    - name: TwoPhotonSeriesMotionCorrected
-      description: The motion corrected two-photon imaging data.
+    - name: OnePhotonSeriesMotionCorrected
+      description: The motion corrected fiber bundle imaging data.
       imaging_plane: ImagingPlane
       unit: n.a.

@@ -325,7 +325,8 @@ def update_ophys_metadata(
     metadata: dict,
     indicator: str,
     excitation_wavelength_in_nm: int,
-    two_photon_series_name: str,
+    one_photon_series_name: str,
+    excitation_mode: Literal["single-wavelength", "dual-wavelength"] = "single-wavelength",
 ) -> dict:
     """Process extra metadata for the Vu 2024 fiber photometry dataset.
 
@@ -333,13 +334,14 @@ def update_ophys_metadata(
     ----------
     metadata : dict
         The metadata dictionary containing the metadata for the fiber photometry setup.
-    two_photon_series_name : str
-        The name of the two-photon series.
+    one_photon_series_name : str
+        The name of the OnePhotonSeries.
     indicator : str
         The name of the indicator used in the experiment (e.g 'dLight1.3b', 'GCaMP7f').
     excitation_wavelength_in_nm : int
         The excitation wavelength in nm.
-
+    excitation_mode : str, default: 'single-wavelength'
+        The excitation mode used in the experiment. Options are 'single-wavelength' or 'dual-wavelength'.
 
     Returns
     -------
@@ -359,7 +361,7 @@ def update_ophys_metadata(
     )
 
     # Update ImagingPlane metadata
-    name_suffix = two_photon_series_name.replace("TwoPhotonSeries", "")
+    name_suffix = one_photon_series_name.replace("OnePhotonSeries", "")
     imaging_plane_name = f"ImagingPlane{name_suffix}"
     imaging_plane_metadata = metadata_copy["Ophys"]["ImagingPlane"][0]
     if "optical_channel" in imaging_plane_metadata:
@@ -376,16 +378,32 @@ def update_ophys_metadata(
             indicator=indicator,
         )
 
-        two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][0]
-        two_photon_series_metadata.update(
-            name=two_photon_series_name,
+        one_photon_series_metadata = metadata_copy["Ophys"]["OnePhotonSeries"][0]
+        default_description = one_photon_series_metadata["description"]
+
+        if excitation_mode == "dual-wavelength":
+            additional_description = (
+                " For dual-wavelength excitation and emission, two LEDs were triggered by 5V digital"
+                " TTL pulses which alternated at either 11Hz (30ms exposure) or 18Hz (20ms exposure)."
+            )
+        elif excitation_mode == "single-wavelength":
+            additional_description = (
+                " Single wavelength excitation and emission was performed with continuous, internally triggered imaging"
+                " at 30Hz."
+            )
+        else:
+            additional_description = ""
+
+        one_photon_series_metadata.update(
+            name=one_photon_series_name,
             imaging_plane=imaging_plane_name,
+            description=default_description + additional_description,
         )
 
-        if len(metadata_copy["Ophys"]["TwoPhotonSeries"]) > 1:
-            two_photon_series_metadata = metadata_copy["Ophys"]["TwoPhotonSeries"][1]
-            two_photon_series_metadata.update(
-                name=f"TwoPhotonSeriesMotionCorrected{name_suffix}",
+        if len(metadata_copy["Ophys"]["OnePhotonSeries"]) > 1:
+            one_photon_series_metadata = metadata_copy["Ophys"]["OnePhotonSeries"][1]
+            one_photon_series_metadata.update(
+                name=f"OnePhotonSeriesMotionCorrected{name_suffix}",
                 imaging_plane=imaging_plane_name,
             )
     plane_segmentation_metadata = metadata_copy["Ophys"]["ImageSegmentation"]["plane_segmentations"][0]

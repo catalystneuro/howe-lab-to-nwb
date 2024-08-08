@@ -80,7 +80,9 @@ def single_wavelength_session_to_nwb(
     if sampling_frequency is not None:
         imaging_source_data.update(sampling_frequency=sampling_frequency)
     source_data.update(dict(Imaging=imaging_source_data))
-    conversion_options.update(dict(Imaging=dict(stub_test=stub_test, photon_series_index=0)))
+    conversion_options.update(
+        dict(Imaging=dict(stub_test=stub_test, photon_series_type="OnePhotonSeries", photon_series_index=0))
+    )
 
     # Add raw fiber photometry
     source_data.update(
@@ -104,12 +106,21 @@ def single_wavelength_session_to_nwb(
         source_data.update(
             dict(
                 ProcessedImaging=dict(
-                    file_path=str(motion_corrected_imaging_file_path), sampling_frequency=sampling_frequency
+                    file_path=str(motion_corrected_imaging_file_path),
+                    photon_series_type="OnePhotonSeries",
+                    sampling_frequency=sampling_frequency,
                 )
             )
         )
         conversion_options.update(
-            dict(ProcessedImaging=dict(stub_test=stub_test, photon_series_index=1, parent_container="processing/ophys"))
+            dict(
+                ProcessedImaging=dict(
+                    stub_test=stub_test,
+                    photon_series_type="OnePhotonSeries",
+                    photon_series_index=1,
+                    parent_container="processing/ophys",
+                )
+            )
         )
 
     # Add fiber locations
@@ -197,7 +208,7 @@ def single_wavelength_session_to_nwb(
     # Update metadata with the excitation wavelength and indicator
     metadata = update_ophys_metadata(
         metadata=metadata,
-        two_photon_series_name=f"TwoPhotonSeries{name_suffix}",
+        one_photon_series_name=f"OnePhotonSeries{name_suffix}",
         excitation_wavelength_in_nm=excitation_wavelength_in_nm,
         indicator=indicator,
     )

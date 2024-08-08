@@ -3,6 +3,7 @@ from typing import Optional
 
 from neuroconv import NWBConverter
 from neuroconv.datainterfaces import TiffImagingInterface, VideoInterface
+from neuroconv.tools import get_module
 from neuroconv.tools.signal_processing import get_rising_frames_from_ttl
 from neuroconv.utils import DeepDict
 from pymatreader import read_mat
@@ -13,6 +14,7 @@ from howe_lab_to_nwb.vu2024.interfaces import (
     Vu2024FiberPhotometryInterface,
     Vu2024BehaviorInterface,
     Vu2024SegmentationInterface,
+    Vu2024TiffImagingInterface,
 )
 
 
@@ -23,7 +25,7 @@ class Vu2024NWBConverter(NWBConverter):
 
     data_interface_classes = dict(
         Imaging=CxdImagingInterface,
-        ProcessedImaging=TiffImagingInterface,
+        ProcessedImaging=Vu2024TiffImagingInterface,
         FiberPhotometry=Vu2024FiberPhotometryInterface,
         Behavior=Vu2024BehaviorInterface,
         Segmentation=Vu2024SegmentationInterface,
@@ -40,17 +42,6 @@ class Vu2024NWBConverter(NWBConverter):
         )
 
         return metadata_schema
-
-    def get_metadata(self) -> DeepDict:
-        metadata = super().get_metadata()
-
-        # Overwrite the Ophys imaging metadata with the metadata from the CxdImagingInterface
-        imaging_interface_metadata = self.data_interface_objects["Imaging"].get_metadata()
-        metadata["Ophys"]["Device"] = imaging_interface_metadata["Ophys"]["Device"]
-        metadata["Ophys"]["ImagingPlane"] = imaging_interface_metadata["Ophys"]["ImagingPlane"]
-        metadata["Ophys"]["TwoPhotonSeries"] = imaging_interface_metadata["Ophys"]["TwoPhotonSeries"]
-
-        return metadata
 
     def temporally_align_data_interfaces(self):
         if self.aligned:
@@ -90,4 +81,8 @@ class Vu2024NWBConverter(NWBConverter):
 
     def add_to_nwbfile(self, nwbfile: NWBFile, metadata, conversion_options: Optional[dict] = None) -> None:
         self.temporally_align_data_interfaces()
+        # set custom description for the 'ophys' processing module
+        _ = get_module(
+            nwbfile=nwbfile, name="ophys", description="Constains the processed imaging and fiber photometry data."
+        )
         return super().add_to_nwbfile(nwbfile=nwbfile, metadata=metadata, conversion_options=conversion_options)

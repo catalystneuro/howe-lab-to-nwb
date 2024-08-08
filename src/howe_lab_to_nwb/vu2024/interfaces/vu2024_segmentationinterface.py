@@ -32,3 +32,9 @@ class Vu2024SegmentationInterface(BaseSegmentationExtractorInterface):
         """
         super().__init__(file_path=file_path, sampling_frequency=sampling_frequency, accepted_list=accepted_list)
         self.verbose = verbose
+
+    def get_metadata(self) -> dict:
+        metadata = super().get_metadata()
+        device_name = "HamamatsuMicroscope"
+        metadata["Ophys"]["Device"][0].update(name=device_name)
+        return metadata

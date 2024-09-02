@@ -304,11 +304,15 @@ def update_fiber_photometry_metadata(
     if indicator == "jRGECO1a":
         emission_filter = "OpticalFilter570"
 
+    excitation_filter = f"OpticalFilter{excitation_wavelength_in_nm}"
+    if excitation_wavelength_in_nm == 415:
+        excitation_filter = "OpticalFilter405"
+
     fiber_photometry_response_series_metadata.update(
         name=fiber_photometry_response_series_name,
         indicator=indicator,
         excitation_source=f"ExcitationSource{excitation_wavelength_in_nm}",
-        excitation_filter=f"OpticalFilter{excitation_wavelength_in_nm}",
+        excitation_filter=excitation_filter,
         emission_filter=emission_filter,
         dichroic_mirror="DichroicMirror1",
     )

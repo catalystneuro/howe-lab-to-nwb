@@ -114,6 +114,9 @@ class CxdImagingExtractor(ImagingExtractor):
         self._num_columns = parsed_metadata["num_columns"]
         self._dtype = parsed_metadata["dtype"]
         self._sampling_frequency = parsed_metadata["sampling_frequency"]
+        # When the cxd file contains both channels (dual-wavelength excitation), the sampling frequency should be halved.
+        if frame_indices is not None:
+            self._sampling_frequency = self._sampling_frequency / 2
         self._channel_names = parsed_metadata["channel_names"]
         self._plane_names = [f"{i}" for i in range(self._num_planes)]
 

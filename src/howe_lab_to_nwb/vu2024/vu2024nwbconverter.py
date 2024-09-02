@@ -62,9 +62,9 @@ class Vu2024NWBConverter(NWBConverter):
         video_interfaces = [self.data_interface_objects[key] for key in self.data_interface_objects if "Video" in key]
         for video_interface in video_interfaces:
             video_file_path = video_interface.source_data["file_paths"][0]
-            if any(part in video_file_path for part in ["body", "top"]):
+            if any(part in video_file_path for part in ["body", "top", "video1"]):
                 ttl_stream_name = "ttlIn3"
-            elif any(part in video_file_path for part in ["lick", "face", "side"]):
+            elif any(part in video_file_path for part in ["lick", "face", "side", "video2"]):
                 ttl_stream_name = "ttlIn4"
             else:
                 raise ValueError(f"Could not determine TTL stream for video file {video_file_path}.")

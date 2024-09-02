@@ -200,6 +200,7 @@ def single_wavelength_session_to_nwb(
     excitation_wavelength_to_photon_series_name = {
         470: "Green",
         405: "GreenIsosbestic",
+        415: "GreenIsosbestic",
         570: "Red",
     }
 

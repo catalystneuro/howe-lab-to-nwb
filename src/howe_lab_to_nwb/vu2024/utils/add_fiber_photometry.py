@@ -180,7 +180,7 @@ def add_fiber_photometry_series(
     if default_series_name not in nwbfile.acquisition:
         for fiber_ind in range(num_fibers):
             brain_area = fiber_locations_metadata[fiber_ind]["location"]
-            included = fiber_locations_metadata[fiber_ind]["included"]
+            included = bool(fiber_locations_metadata[fiber_ind]["included"])
             fiber_photometry_table.add_row(
                 included=included,
                 location=brain_area,  # TODO: change this in the extension to brain_area

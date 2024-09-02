@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Union, Optional, List
 
 from dateutil import tz
+from natsort import natsorted
 from neuroconv.tools.nwb_helpers import configure_and_write_nwbfile
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 from pynwb import NWBFile
@@ -147,7 +148,14 @@ def single_wavelength_session_to_nwb(
     # Add behavior camera recording (optional)
     subject_id = raw_fiber_photometry_file_path.parent.parent.name
     session_id = raw_fiber_photometry_file_path.parent.name
-    behavior_avi_file_paths = list(raw_fiber_photometry_file_path.parent.glob(f"{subject_id}*.avi"))
+
+    file_pattern_from_raw_fiber_photometry_file = raw_fiber_photometry_file_path.stem.split("_")[0]
+    avi_file_patterns = [f"{subject_id}*.avi", f"{file_pattern_from_raw_fiber_photometry_file}*.avi"]
+    for avi_file_pattern in avi_file_patterns:
+        behavior_avi_file_paths = natsorted(raw_fiber_photometry_file_path.parent.glob(avi_file_pattern))
+        if len(behavior_avi_file_paths):
+            break
+
     for avi_file_ind, behavior_avi_file_path in enumerate(behavior_avi_file_paths):
         video_key = f"Video{avi_file_ind + 1}"
         source_data.update(

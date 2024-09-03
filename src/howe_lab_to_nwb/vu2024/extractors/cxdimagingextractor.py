@@ -1,10 +1,9 @@
 import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import aicsimageio
 import numpy as np
-from neuroconv.utils import FilePathType
 from roiextractors import ImagingExtractor
 from roiextractors.extraction_tools import DtypeType
 
@@ -15,12 +14,12 @@ class CxdImagingExtractor(ImagingExtractor):
     extractor_name = "CxdImaging"
 
     @classmethod
-    def get_available_channels(cls, file_path) -> List[str]:
+    def get_available_channels(cls, file_path: Union[str, Path]) -> List[str]:
         """Get the available channel names from a CXD file produced by Hamamatsu Photonics.
 
         Parameters
         ----------
-        file_path : PathType
+        file_path : str or Path
             Path to the Bio-Formats file.
 
         Returns
@@ -36,12 +35,12 @@ class CxdImagingExtractor(ImagingExtractor):
         return channel_names
 
     @classmethod
-    def get_available_planes(cls, file_path):
+    def get_available_planes(cls, file_path: Union[str, Path]) -> List[str]:
         """Get the available plane names from a CXD file produced by Hamamatsu Photonics.
 
         Parameters
         ----------
-        file_path : PathType
+        file_path : str or Path
             Path to the Bio-Formats file.
 
         Returns
@@ -59,7 +58,7 @@ class CxdImagingExtractor(ImagingExtractor):
 
     def __init__(
         self,
-        file_path: FilePathType,
+        file_path: Union[str, Path],
         channel_name: str = None,
         plane_name: str = None,
         sampling_frequency: float = None,
@@ -83,7 +82,7 @@ class CxdImagingExtractor(ImagingExtractor):
 
         Parameters
         ----------
-        file_path : PathType
+        file_path : str or Path
             Path to the CXD file.
         channel_name : str
             The name of the channel for this extractor. (default=None)

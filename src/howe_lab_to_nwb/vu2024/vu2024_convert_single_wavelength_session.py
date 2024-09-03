@@ -1,7 +1,7 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 import os
 from pathlib import Path
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Literal
 
 from dateutil import tz
 from natsort import natsorted
@@ -30,6 +30,7 @@ def single_wavelength_session_to_nwb(
     sampling_frequency: float = None,
     subject_metadata: Optional[dict] = None,
     aligned_starting_time: Optional[float] = None,
+    excitation_mode: Literal["single-wavelength", "dual-wavelength"] = "single-wavelength",
     stub_test: bool = False,
 ) -> NWBFile:
     """
@@ -72,6 +73,9 @@ def single_wavelength_session_to_nwb(
         The starting time to align the data to. If None, the starting time will be extracted from the behavior data.
     subject_metadata : dict, optional
         The metadata for the subject.
+    excitation_mode: Literal["single-wavelength", "dual-wavelength"], optional
+        The mode of excitation used for the imaging data. By default "single-wavelength".
+        Used to correctly update the description of the imaging data.
     stub_test : bool, optional
         Whether to run a stub test, by default False.
     """
@@ -225,6 +229,7 @@ def single_wavelength_session_to_nwb(
         metadata=metadata,
         one_photon_series_name=f"OnePhotonSeries{name_suffix}",
         excitation_wavelength_in_nm=excitation_wavelength_in_nm,
+        excitation_mode=excitation_mode,
         indicator=indicator,
     )
 

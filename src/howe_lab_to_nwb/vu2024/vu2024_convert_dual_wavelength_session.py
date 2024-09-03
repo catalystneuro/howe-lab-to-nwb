@@ -81,6 +81,7 @@ def dual_wavelength_session_to_nwb(
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[0],
         behavior_file_path=behavior_file_paths[0],
         subject_metadata=subject_metadata,
+        excitation_mode="dual-wavelength",
         stub_test=stub_test,
     )
 
@@ -99,6 +100,7 @@ def dual_wavelength_session_to_nwb(
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[1],
         nwbfile=nwbfile,
         nwbfile_path=nwbfile_path,
+        excitation_mode="dual-wavelength",
         stub_test=stub_test,
     )
 
@@ -132,7 +134,7 @@ if __name__ == "__main__":
     indicators = ["Ach3.0", "jRGECO1a"]
 
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/Grid9_210821.nwb")
-    stub_test = True
+    stub_test = False
 
     dual_wavelength_session_to_nwb(
         raw_imaging_file_paths=imaging_file_paths,

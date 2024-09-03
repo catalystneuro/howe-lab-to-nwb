@@ -118,7 +118,7 @@ cd src/howe_lab_to_nwb/vu2024
 pip install -r vu2024_requirements.txt
 ```
 
-### Convert a single-wavelength session
+### Convert single-wavelength sessions
 
 To convert a single-wavelength session, you can do in Python:
 
@@ -153,8 +153,6 @@ The `single_wavelength_session_to_nwb` functions takes the following parameters:
 - `behavior_file_path`: The path to the processed behavior file.
 - `nwbfile_path`: The path to the output NWB file.
 - `stub_test`: if True, only a small subset of the data is converted (default: False).
-
-### Convert all single-wavelength sessions
 
 To convert all single-wavelength sessions, you can do in Python:
 

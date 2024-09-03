@@ -6,7 +6,7 @@ from typing import Literal, List
 import numpy as np
 import pandas as pd
 from neuroconv.tools import get_module
-from neuroconv.utils import calculate_regular_series_rate, FilePathType
+from neuroconv.utils import calculate_regular_series_rate
 from pynwb import NWBFile
 from ndx_fiber_photometry import (
     FiberPhotometryTable,
@@ -236,13 +236,13 @@ def add_fiber_photometry_series(
         raise ValueError(f"Invalid parent container '{parent_container}'.")
 
 
-def get_fiber_locations(file_path: FilePathType) -> List[dict]:
+def get_fiber_locations(file_path: str) -> List[dict]:
     """
     Read fiber locations from an xlsx file and return a list of dictionaries with the fiber metadata.
 
     Parameters
     ----------
-    file_path : FilePathType
+    file_path : str
         The path to the fiber locations xlsx file.
     """
 

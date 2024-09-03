@@ -1,12 +1,11 @@
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from neuroconv import BaseTemporalAlignmentInterface
 from neuroconv.tools.signal_processing import get_rising_frames_from_ttl
-from neuroconv.utils import FilePathType, DeepDict
 from pymatreader import read_mat
 from pynwb import NWBFile
 
@@ -25,8 +24,8 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
 
     def __init__(
         self,
-        file_path: FilePathType,
-        ttl_file_path: FilePathType,
+        file_path: Union[str, Path],
+        ttl_file_path: Union[str, Path],
         ttl_stream_name: str,
         verbose: bool = True,
     ):
@@ -35,9 +34,9 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
 
         Parameters
         ----------
-        file_path : FilePathType
+        file_path : str or Path
             Path to the .mat file that contains the fiber photometry data.
-        ttl_file_path : FilePathType
+        ttl_file_path : str or Path
             Path to the .mat file that contains the TTL signals.
         ttl_stream_name : str, optional
             Name of the TTL stream to extract from the TTL signals. Default is 'ttlIn1'.
@@ -80,7 +79,7 @@ class Vu2024FiberPhotometryInterface(BaseTemporalAlignmentInterface):
     def set_aligned_timestamps(self, aligned_timestamps: np.ndarray) -> None:
         self._timestamps = np.array(aligned_timestamps)
 
-    def get_metadata(self) -> DeepDict:
+    def get_metadata(self) -> dict:
         metadata = super().get_metadata()
 
         expected_date_format = "%d-%b-%Y %H:%M:%S"

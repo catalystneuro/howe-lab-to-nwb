@@ -1,7 +1,7 @@
-from typing import Literal
+from pathlib import Path
+from typing import Literal, Union
 
 from neuroconv.datainterfaces import TiffImagingInterface
-from neuroconv.utils import FilePathType, DeepDict
 
 
 class Vu2024TiffImagingInterface(TiffImagingInterface):
@@ -21,7 +21,7 @@ class Vu2024TiffImagingInterface(TiffImagingInterface):
 
     def __init__(
         self,
-        file_path: FilePathType,
+        file_path: Union[str, Path],
         sampling_frequency: float,
         verbose: bool = True,
         photon_series_type: Literal["OnePhotonSeries", "TwoPhotonSeries"] = "OnePhotonSeries",
@@ -31,10 +31,12 @@ class Vu2024TiffImagingInterface(TiffImagingInterface):
 
         Parameters
         ----------
-        file_path : FilePathType
+        file_path : str or Path
+            Path to the TIFF file.
         sampling_frequency : float
+            The sampling frequency of the data.
         verbose : bool, default: True
-        photon_series_type : {'OnePhotonSeries', 'TwoPhotonSeries'}, default: "TwoPhotonSeries"
+        photon_series_type : {'OnePhotonSeries', 'TwoPhotonSeries'}, default: "OnePhotonSeries"
         """
         super().__init__(
             file_path=file_path,
@@ -45,7 +47,7 @@ class Vu2024TiffImagingInterface(TiffImagingInterface):
 
     def get_metadata(
         self, photon_series_type: Literal["OnePhotonSeries", "TwoPhotonSeries"] = "OnePhotonSeries"
-    ) -> DeepDict:
+    ) -> dict:
         # Override the default metadata to correctly set the metadata for this experiment
         metadata = super().get_metadata(photon_series_type=photon_series_type)
 

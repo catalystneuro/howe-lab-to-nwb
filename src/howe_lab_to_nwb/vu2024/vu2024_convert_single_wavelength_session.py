@@ -1,9 +1,10 @@
 """Primary script to run to convert an entire session for of data using the NWBConverter."""
 import os
 from pathlib import Path
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Literal
 
 from dateutil import tz
+from natsort import natsorted
 from neuroconv.tools.nwb_helpers import configure_and_write_nwbfile
 from neuroconv.utils import load_dict_from_file, dict_deep_update
 from pynwb import NWBFile
@@ -28,6 +29,8 @@ def single_wavelength_session_to_nwb(
     nwbfile: Optional[NWBFile] = None,
     sampling_frequency: float = None,
     subject_metadata: Optional[dict] = None,
+    aligned_starting_time: Optional[float] = None,
+    excitation_mode: Literal["single-wavelength", "dual-wavelength"] = "single-wavelength",
     stub_test: bool = False,
 ) -> NWBFile:
     """
@@ -66,8 +69,13 @@ def single_wavelength_session_to_nwb(
     sampling_frequency : float, optional
         The sampling frequency of the data. If None, the sampling frequency will be read from the .cxd file.
         If missing from the file, the sampling frequency must be provided.
+    aligned_starting_time: float, optional
+        The starting time to align the data to. If None, the starting time will be extracted from the behavior data.
     subject_metadata : dict, optional
         The metadata for the subject.
+    excitation_mode: Literal["single-wavelength", "dual-wavelength"], optional
+        The mode of excitation used for the imaging data. By default "single-wavelength".
+        Used to correctly update the description of the imaging data.
     stub_test : bool, optional
         Whether to run a stub test, by default False.
     """
@@ -144,10 +152,20 @@ def single_wavelength_session_to_nwb(
         source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
         conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))
 
+    if behavior_file_path is None and aligned_starting_time is None:
+        raise ValueError("Either the behavior file path or the aligned starting time must be provided.")
+
     # Add behavior camera recording (optional)
     subject_id = raw_fiber_photometry_file_path.parent.parent.name
     session_id = raw_fiber_photometry_file_path.parent.name
-    behavior_avi_file_paths = list(raw_fiber_photometry_file_path.parent.glob(f"{subject_id}*.avi"))
+
+    file_pattern_from_raw_fiber_photometry_file = raw_fiber_photometry_file_path.stem.split("_")[0]
+    avi_file_patterns = [f"{subject_id}*.avi", f"{file_pattern_from_raw_fiber_photometry_file}*.avi"]
+    for avi_file_pattern in avi_file_patterns:
+        behavior_avi_file_paths = natsorted(raw_fiber_photometry_file_path.parent.glob(avi_file_pattern))
+        if len(behavior_avi_file_paths):
+            break
+
     for avi_file_ind, behavior_avi_file_path in enumerate(behavior_avi_file_paths):
         video_key = f"Video{avi_file_ind + 1}"
         source_data.update(
@@ -192,6 +210,7 @@ def single_wavelength_session_to_nwb(
     excitation_wavelength_to_photon_series_name = {
         470: "Green",
         405: "GreenIsosbestic",
+        415: "GreenIsosbestic",
         570: "Red",
     }
 
@@ -210,13 +229,19 @@ def single_wavelength_session_to_nwb(
         metadata=metadata,
         one_photon_series_name=f"OnePhotonSeries{name_suffix}",
         excitation_wavelength_in_nm=excitation_wavelength_in_nm,
+        excitation_mode=excitation_mode,
         indicator=indicator,
     )
 
     if nwbfile is None:
         nwbfile = converter.create_nwbfile(metadata=metadata, conversion_options=conversion_options)
     else:
-        converter.add_to_nwbfile(nwbfile=nwbfile, metadata=metadata, conversion_options=conversion_options)
+        converter.add_to_nwbfile(
+            nwbfile=nwbfile,
+            metadata=metadata,
+            conversion_options=conversion_options,
+            aligned_starting_time=aligned_starting_time,
+        )
 
     if nwbfile_path is None:
         return nwbfile
@@ -244,7 +269,7 @@ if __name__ == "__main__":
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/GridDL-18_211110.nwb")
     if not nwbfile_path.parent.exists():
         os.makedirs(nwbfile_path.parent, exist_ok=True)
-    stub_test = True
+    stub_test = False
 
     single_wavelength_session_to_nwb(
         raw_imaging_file_path=raw_imaging_file_path,

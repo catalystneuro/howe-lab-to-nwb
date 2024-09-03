@@ -6,7 +6,7 @@ from typing import Literal, List
 import numpy as np
 import pandas as pd
 from neuroconv.tools import get_module
-from neuroconv.utils import calculate_regular_series_rate, FilePathType
+from neuroconv.utils import calculate_regular_series_rate
 from pynwb import NWBFile
 from ndx_fiber_photometry import (
     FiberPhotometryTable,
@@ -180,7 +180,7 @@ def add_fiber_photometry_series(
     if default_series_name not in nwbfile.acquisition:
         for fiber_ind in range(num_fibers):
             brain_area = fiber_locations_metadata[fiber_ind]["location"]
-            included = fiber_locations_metadata[fiber_ind]["included"]
+            included = bool(fiber_locations_metadata[fiber_ind]["included"])
             fiber_photometry_table.add_row(
                 included=included,
                 location=brain_area,  # TODO: change this in the extension to brain_area
@@ -236,13 +236,13 @@ def add_fiber_photometry_series(
         raise ValueError(f"Invalid parent container '{parent_container}'.")
 
 
-def get_fiber_locations(file_path: FilePathType) -> List[dict]:
+def get_fiber_locations(file_path: str) -> List[dict]:
     """
     Read fiber locations from an xlsx file and return a list of dictionaries with the fiber metadata.
 
     Parameters
     ----------
-    file_path : FilePathType
+    file_path : str
         The path to the fiber locations xlsx file.
     """
 
@@ -304,11 +304,15 @@ def update_fiber_photometry_metadata(
     if indicator == "jRGECO1a":
         emission_filter = "OpticalFilter570"
 
+    excitation_filter = f"OpticalFilter{excitation_wavelength_in_nm}"
+    if excitation_wavelength_in_nm == 415:
+        excitation_filter = "OpticalFilter405"
+
     fiber_photometry_response_series_metadata.update(
         name=fiber_photometry_response_series_name,
         indicator=indicator,
         excitation_source=f"ExcitationSource{excitation_wavelength_in_nm}",
-        excitation_filter=f"OpticalFilter{excitation_wavelength_in_nm}",
+        excitation_filter=excitation_filter,
         emission_filter=emission_filter,
         dichroic_mirror="DichroicMirror1",
     )

@@ -1,10 +1,11 @@
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
 from neuroconv import BaseTemporalAlignmentInterface
 from neuroconv.tools import get_module
-from neuroconv.utils import FilePathType, get_base_schema, get_schema_from_hdmf_class
+from neuroconv.utils import get_base_schema, get_schema_from_hdmf_class
 from pymatreader import read_mat
 from pynwb import NWBFile, TimeSeries
 from pynwb.epoch import TimeIntervals
@@ -21,7 +22,7 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
 
     def __init__(
         self,
-        file_path: FilePathType,
+        file_path: Union[str, Path],
         verbose: bool = True,
     ):
         """
@@ -29,7 +30,7 @@ class Vu2024BehaviorInterface(BaseTemporalAlignmentInterface):
 
         Parameters
         ----------
-        file_path : FilePathType
+        file_path : str or Path
             Path to the .mat file that contains the "binned" behavior data.
             ("*ttlIn1_movie1.mat" files)
         verbose : bool, default: True

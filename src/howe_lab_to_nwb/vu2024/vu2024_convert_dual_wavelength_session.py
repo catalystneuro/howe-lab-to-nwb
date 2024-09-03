@@ -57,6 +57,7 @@ def dual_wavelength_session_to_nwb(
         motion_corrected_imaging_file_paths = [None] * len(raw_imaging_file_paths)
 
     first_frame_indices, second_frame_indices = None, None
+    second_behavior_data = read_mat(behavior_file_paths[1])
     if len(set(raw_imaging_file_paths)) != len(raw_imaging_file_paths):
         # we need the frame_indices for the imaging data
         if len(behavior_file_paths) != len(raw_imaging_file_paths):
@@ -65,7 +66,6 @@ def dual_wavelength_session_to_nwb(
         if "orig_frame_numbers" not in first_behavior_data:
             raise ValueError(f"Expected 'orig_frame_numbers' is not in '{behavior_file_paths[0]}'.")
         first_frame_indices = list(first_behavior_data["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
-        second_behavior_data = read_mat(behavior_file_paths[1])
         second_frame_indices = list(second_behavior_data["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
 
     # Add data from the first excitation wavelength
@@ -81,13 +81,16 @@ def dual_wavelength_session_to_nwb(
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[0],
         behavior_file_path=behavior_file_paths[0],
         subject_metadata=subject_metadata,
+        excitation_mode="dual-wavelength",
         stub_test=stub_test,
     )
 
+    second_frame_starting_time = second_behavior_data["timestamp"][0]
     # Add data from the second excitation wavelength and write to NWB file
     single_wavelength_session_to_nwb(
         raw_imaging_file_path=raw_imaging_file_paths[1],
         frame_indices=second_frame_indices,
+        aligned_starting_time=second_frame_starting_time,
         raw_fiber_photometry_file_path=fiber_photometry_file_paths[1],
         fiber_locations_file_path=fiber_locations_file_path,
         excitation_wavelength_in_nm=excitation_wavelengths_in_nm[1],
@@ -97,6 +100,7 @@ def dual_wavelength_session_to_nwb(
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[1],
         nwbfile=nwbfile,
         nwbfile_path=nwbfile_path,
+        excitation_mode="dual-wavelength",
         stub_test=stub_test,
     )
 
@@ -130,7 +134,7 @@ if __name__ == "__main__":
     indicators = ["Ach3.0", "jRGECO1a"]
 
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/Grid9_210821.nwb")
-    stub_test = True
+    stub_test = False
 
     dual_wavelength_session_to_nwb(
         raw_imaging_file_paths=imaging_file_paths,

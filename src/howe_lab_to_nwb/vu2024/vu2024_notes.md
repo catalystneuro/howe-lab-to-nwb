@@ -140,7 +140,7 @@ single_wavelength_session_to_nwb(
 
 #### Conversion parameters
 
-The conversion script takes the following parameters:
+The `single_wavelength_session_to_nwb` functions takes the following parameters:
 
 - `raw_imaging_file_path`: The path to the .cxd file containing the raw imaging data.
 - `raw_fiber_photometry_file_path`: The path to the .mat file containing the raw fiber photometry data.
@@ -154,9 +154,37 @@ The conversion script takes the following parameters:
 - `nwbfile_path`: The path to the output NWB file.
 - `stub_test`: if True, only a small subset of the data is converted (default: False).
 
-### Convert a dual-wavelength session
+### Convert all single-wavelength sessions
 
-To convert a dual-wavelength session, you can do in Python:
+To convert all single-wavelength sessions, you can do in Python:
+
+```python
+from howe_lab_to_nwb.vu2024.vu2024_convert_all_single_wavelength_sessions import convert_all_single_wavelength_sessions
+convert_all_single_wavelength_sessions(
+        data_table_path="data table.xlsx",
+        folder_path="ExperimentFolder",
+        nwbfile_folder_path="nwbfiles",
+        subject_ids=["DL18", "DL20", "DL21", "DL23", "DL27", "DL29", "DL30", "DL15"],
+        stub_test=False,
+        overwrite=False,
+    )
+```
+
+#### Conversion parameters
+
+The `convert_all_single_wavelength_sessions` function takes the following parameters:
+
+- `data_table_path`: The path to the XLSX file containing info for all the sessions. (required)
+- `folder_path`: The root folder path to search for the filenames in the data table. (required)
+- `nwbfile_folder_path`: The folder path to save the NWB files. (required)
+- `subject_ids`: The list of subject IDs to convert. (optional)
+- `stub_test`: if True, only a small subset of the data is converted (default: False).
+- `overwrite`: if True, overwrite existing NWB files (default: False).
+
+
+### Convert dual-wavelength sessions
+
+To convert a single dual-wavelength session, you can do in Python:
 
 ```python
 from howe_lab_to_nwb.vu2024.vu2024_convert_dual_wavelength_session import dual_wavelength_session_to_nwb
@@ -173,3 +201,27 @@ dual_wavelength_session_to_nwb(
         nwbfile_path="sub-Grid9_ses-210821.nwb",
     )
 ```
+
+To convert all dual-wavelength sessions, you can do in Python:
+```python
+from howe_lab_to_nwb.vu2024.vu2024_convert_all_dual_wavelength_sessions import convert_all_dual_wavelength_sessions
+convert_all_dual_wavelength_sessions(
+        data_table_path="data table.xlsx",
+        folder_path="ExperimentFolder",
+        nwbfile_folder_path="nwbfiles",
+        subject_ids=["Grid9", "842", "DL31", "DL32"],
+        stub_test=False,
+        overwrite=False,
+    )
+```
+
+#### Conversion parameters
+
+The `convert_all_dual_wavelength_sessions` function takes the following parameters:
+
+- `data_table_path`: The path to the XLSX file containing info for all the sessions. (required)
+- `folder_path`: The root folder path to search for the filenames in the data table. (required)
+- `nwbfile_folder_path`: The folder path to save the NWB files. (required)
+- `subject_ids`: The list of subject IDs to convert. (required)
+- `stub_test`: if True, only a small subset of the data is converted (default: False).
+- `overwrite`: if True, overwrite existing NWB files (default: False).

@@ -264,7 +264,7 @@ if __name__ == "__main__":
     nwbfile_path = Path("/Volumes/t7-ssd/Howe/nwbfiles/GridDL-18_211110.nwb")
     if not nwbfile_path.parent.exists():
         os.makedirs(nwbfile_path.parent, exist_ok=True)
-    stub_test = True
+    stub_test = False
 
     single_wavelength_session_to_nwb(
         raw_imaging_file_path=raw_imaging_file_path,

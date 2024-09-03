@@ -1,7 +1,7 @@
-from typing import Literal, List, Optional
+from pathlib import Path
+from typing import Literal, Union
 
 from neuroconv.datainterfaces.ophys.baseimagingextractorinterface import BaseImagingExtractorInterface
-from neuroconv.utils import FilePathType, DeepDict
 
 from howe_lab_to_nwb.vu2024.extractors.cxdimagingextractor import CxdImagingExtractor
 
@@ -25,7 +25,7 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
 
     def __init__(
         self,
-        file_path: FilePathType,
+        file_path: Union[str, Path],
         channel_name: str = None,
         plane_name: str = None,
         sampling_frequency: float = None,
@@ -37,7 +37,7 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
 
         Parameters
         ----------
-        file_path : FilePathType
+        file_path : str or Path
             Path to the CXD file.
         channel_name : str, optional
             The name of the channel for this extractor.
@@ -62,12 +62,12 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
 
     def get_metadata(
         self, photon_series_type: Literal["OnePhotonSeries", "TwoPhotonSeries"] = "OnePhotonSeries"
-    ) -> DeepDict:
+    ) -> dict:
         metadata = super().get_metadata(photon_series_type=photon_series_type)
 
         device_name = "HamamatsuMicroscope"
         metadata["Ophys"]["Device"][0].update(name=device_name)
-        optical_channel_name = "OpticalChannel"  # TODO: add better channel name
+        optical_channel_name = "OpticalChannel"
         imaging_plane_metadata = metadata["Ophys"]["ImagingPlane"][0]
         optical_channel_metadata = imaging_plane_metadata["optical_channel"][0]
         optical_channel_metadata.update(name=optical_channel_name)

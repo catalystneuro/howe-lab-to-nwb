@@ -2,10 +2,9 @@
 from typing import Optional
 
 from neuroconv import NWBConverter
-from neuroconv.datainterfaces import TiffImagingInterface, VideoInterface
+from neuroconv.datainterfaces import VideoInterface
 from neuroconv.tools import get_module
 from neuroconv.tools.signal_processing import get_rising_frames_from_ttl
-from neuroconv.utils import DeepDict
 from pymatreader import read_mat
 from pynwb import NWBFile
 

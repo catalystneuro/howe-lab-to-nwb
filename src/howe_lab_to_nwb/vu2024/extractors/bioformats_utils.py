@@ -1,15 +1,14 @@
 import os
 from pathlib import Path
-
+from typing import Union
 
 import numpy as np
 import aicsimageio
 from aicsimageio.formats import FORMAT_IMPLEMENTATIONS
-from neuroconv.utils import FilePathType
 from ome_types import OME
 
 
-def check_file_format_is_supported(file_path: FilePathType):
+def check_file_format_is_supported(file_path: Union[str, Path]) -> None:
     """
     Check if the file format is supported by BioformatsReader from aicsimageio.
 
@@ -17,7 +16,7 @@ def check_file_format_is_supported(file_path: FilePathType):
 
     Parameters
     ----------
-    file_path : FilePathType
+    file_path : str or Path
         Path to the file.
     """
     bioformats_reader = "aicsimageio.readers.bioformats_reader.BioformatsReader"
@@ -31,14 +30,14 @@ def check_file_format_is_supported(file_path: FilePathType):
 
 
 def extract_ome_metadata(
-    file_path: FilePathType,
+    file_path: Union[str, Path],
 ) -> OME:
     """
     Extract OME metadata from a file using aicsimageio.
 
     Parameters
     ----------
-    file_path : FilePathType
+    file_path : str or Path
         Path to the file.
     """
     check_file_format_is_supported(file_path)

@@ -130,6 +130,6 @@ You might need to install `jupyter` before running the notebooks:
 
 ```
 pip install jupyter
-cd src/howe-lab-to-nwb/vu2024/tutorials
+cd src/howe_lab_to_nwb/vu2024/tutorials
 jupyter lab
 ```

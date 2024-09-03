@@ -1,5 +1,7 @@
+from pathlib import Path
+from typing import Union
+
 from neuroconv.datainterfaces.ophys.basesegmentationextractorinterface import BaseSegmentationExtractorInterface
-from neuroconv.utils import FilePathType
 
 from howe_lab_to_nwb.vu2024.extractors.vu2024_segmentationextractor import Vu2024SegmentationExtractor
 
@@ -14,14 +16,14 @@ class Vu2024SegmentationInterface(BaseSegmentationExtractorInterface):
     Extractor = Vu2024SegmentationExtractor
 
     def __init__(
-        self, file_path: FilePathType, sampling_frequency: float, accepted_list: list = None, verbose: bool = True
+        self, file_path: Union[str, Path], sampling_frequency: float, accepted_list: list = None, verbose: bool = True
     ):
         """
         DataInterface for reading ROI masks and locations from custom .mat files from the Howe Lab.
 
         Parameters
         ----------
-        file_path : FilePathType
+        file_path : str or Path
             Path to the .mat file that contains the ROI masks and locations.
         sampling_frequency : float
             The sampling frequency of the data.

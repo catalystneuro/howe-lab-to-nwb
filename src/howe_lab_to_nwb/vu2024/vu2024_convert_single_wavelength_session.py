@@ -29,6 +29,7 @@ def single_wavelength_session_to_nwb(
     nwbfile: Optional[NWBFile] = None,
     sampling_frequency: float = None,
     subject_metadata: Optional[dict] = None,
+    aligned_starting_time: Optional[float] = None,
     stub_test: bool = False,
 ) -> NWBFile:
     """
@@ -67,6 +68,8 @@ def single_wavelength_session_to_nwb(
     sampling_frequency : float, optional
         The sampling frequency of the data. If None, the sampling frequency will be read from the .cxd file.
         If missing from the file, the sampling frequency must be provided.
+    aligned_starting_time: float, optional
+        The starting time to align the data to. If None, the starting time will be extracted from the behavior data.
     subject_metadata : dict, optional
         The metadata for the subject.
     stub_test : bool, optional
@@ -144,6 +147,9 @@ def single_wavelength_session_to_nwb(
     if behavior_file_path is not None:
         source_data.update(dict(Behavior=dict(file_path=str(behavior_file_path))))
         conversion_options.update(dict(Behavior=dict(stub_test=stub_test)))
+
+    if behavior_file_path is None and aligned_starting_time is None:
+        raise ValueError("Either the behavior file path or the aligned starting time must be provided.")
 
     # Add behavior camera recording (optional)
     subject_id = raw_fiber_photometry_file_path.parent.parent.name
@@ -225,7 +231,12 @@ def single_wavelength_session_to_nwb(
     if nwbfile is None:
         nwbfile = converter.create_nwbfile(metadata=metadata, conversion_options=conversion_options)
     else:
-        converter.add_to_nwbfile(nwbfile=nwbfile, metadata=metadata, conversion_options=conversion_options)
+        converter.add_to_nwbfile(
+            nwbfile=nwbfile,
+            metadata=metadata,
+            conversion_options=conversion_options,
+            aligned_starting_time=aligned_starting_time,
+        )
 
     if nwbfile_path is None:
         return nwbfile

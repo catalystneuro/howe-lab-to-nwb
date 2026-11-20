@@ -6,6 +6,7 @@ from typing import Union, List
 from pymatreader import read_mat
 
 from howe_lab_to_nwb.vu2024 import single_wavelength_session_to_nwb
+from howe_lab_to_nwb.vu2024.extractors.bioformats_utils import extract_ome_metadata, parse_ome_metadata
 
 
 def dual_wavelength_session_to_nwb(
@@ -20,6 +21,7 @@ def dual_wavelength_session_to_nwb(
     behavior_file_paths: List[Union[str, Path]] = None,
     motion_corrected_imaging_file_paths: List[Union[str, Path]] = None,
     subject_metadata: dict = None,
+    sampling_frequency: float = None,
     stub_test: bool = False,
 ):
     """
@@ -49,6 +51,10 @@ def dual_wavelength_session_to_nwb(
         The list of paths to the .tif files containing the motion corrected imaging data.
     subject_metadata : dict, optional
         The metadata for the subject.
+    sampling_frequency : float, optional
+        The sampling frequency of the imaging data of each excitation wavelength in Hz.
+        If None, the sampling frequency is read from the .cxd files. When both wavelengths are in the same .cxd file,
+        it is the sampling frequency in the file divided by the number of wavelengths.
     stub_test : bool, optional
         Whether to run the conversion as a stub test.
     """
@@ -67,6 +73,17 @@ def dual_wavelength_session_to_nwb(
             raise ValueError(f"Expected 'orig_frame_numbers' is not in '{behavior_file_paths[0]}'.")
         first_frame_indices = list(first_behavior_data["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
         second_frame_indices = list(second_behavior_data["orig_frame_numbers"] - 1)  # MATLAB indexing starts at 1
+        if sampling_frequency is None:
+            # The frames of the excitation wavelengths alternate in the .cxd file. The sampling frequency in the file
+            # is the rate of all frames, so the rate of each wavelength is that rate divided by the number of wavelengths.
+            ome_metadata = extract_ome_metadata(file_path=raw_imaging_file_paths[0])
+            file_sampling_frequency = parse_ome_metadata(metadata=ome_metadata)["sampling_frequency"]
+            if file_sampling_frequency is None:
+                raise ValueError(
+                    f"Sampling frequency is not found in '{raw_imaging_file_paths[0]}'. "
+                    "Please provide the sampling frequency of each wavelength with the 'sampling_frequency' argument."
+                )
+            sampling_frequency = file_sampling_frequency / len(raw_imaging_file_paths)
 
     # Add data from the first excitation wavelength
     nwbfile = single_wavelength_session_to_nwb(
@@ -81,6 +98,7 @@ def dual_wavelength_session_to_nwb(
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[0],
         behavior_file_path=behavior_file_paths[0],
         subject_metadata=subject_metadata,
+        sampling_frequency=sampling_frequency,
         excitation_mode="dual-wavelength",
         stub_test=stub_test,
     )
@@ -100,6 +118,7 @@ def dual_wavelength_session_to_nwb(
         motion_corrected_imaging_file_path=motion_corrected_imaging_file_paths[1],
         nwbfile=nwbfile,
         nwbfile_path=nwbfile_path,
+        sampling_frequency=sampling_frequency,
         excitation_mode="dual-wavelength",
         stub_test=stub_test,
     )

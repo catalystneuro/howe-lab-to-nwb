@@ -56,7 +56,12 @@ class Vu2024NWBConverter(NWBConverter):
             aligned_starting_time = behavior_timestamps[0]
 
         # Align the starting time of the imaging data to the starting time of the behavior data
-        imaging.set_aligned_starting_time(aligned_starting_time=aligned_starting_time)
+        # The frame times from the .cxd file do not start at zero when only a selection of the frames is extracted,
+        # so the times are shifted to place the first frame at the aligned starting time.
+        imaging_timestamps = imaging.get_timestamps()
+        imaging.set_aligned_timestamps(
+            aligned_timestamps=imaging_timestamps - imaging_timestamps[0] + aligned_starting_time
+        )
 
         # Use the aligned timestamps to override the timestamps in the fiber photometry data
         aligned_timestamps = imaging.get_timestamps()

@@ -69,6 +69,7 @@ def single_wavelength_session_to_nwb(
     sampling_frequency : float, optional
         The sampling frequency of the data. If None, the sampling frequency will be read from the .cxd file.
         If missing from the file, the sampling frequency must be provided.
+        It must also be provided when 'frame_indices' is used, as the sampling frequency of the selected frames.
     aligned_starting_time: float, optional
         The starting time to align the data to. If None, the starting time will be extracted from the behavior data.
     subject_metadata : dict, optional

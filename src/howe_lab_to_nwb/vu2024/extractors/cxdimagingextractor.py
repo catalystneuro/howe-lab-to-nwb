@@ -1,4 +1,5 @@
 import os
+import warnings
 from pathlib import Path
 from typing import List, Tuple, Union
 
@@ -89,10 +90,13 @@ class CxdImagingExtractor(ImagingExtractor):
         plane_name : str
             The name of the plane for this extractor. (default=None)
         sampling_frequency : float
-            The sampling frequency of the imaging data. (default=None)
-            Has to be provided manually if not found in the metadata.
+            The sampling frequency in Hz of the frames that this extractor returns. (default=None)
+            If None, the sampling frequency is read from the file metadata, which is the rate of all frames in the file.
+            Has to be provided when it is not found in the metadata, and when 'frame_indices' is used.
         frame_indices : list, optional
             List of frame indices to extract. If None, all frames will be extracted. (default=None)
+            The file cannot tell the rate of a selection of its frames (for example every second frame when two
+            excitation wavelengths alternate in the same file), so 'sampling_frequency' is required with this argument.
         """
         from .bioformats_utils import extract_ome_metadata, parse_ome_metadata
 
@@ -112,10 +116,11 @@ class CxdImagingExtractor(ImagingExtractor):
         self._num_rows = parsed_metadata["num_rows"]
         self._num_columns = parsed_metadata["num_columns"]
         self._dtype = parsed_metadata["dtype"]
-        self._sampling_frequency = parsed_metadata["sampling_frequency"]
-        # When the cxd file contains both channels (dual-wavelength excitation), the sampling frequency should be halved.
-        if frame_indices is not None:
-            self._sampling_frequency = self._sampling_frequency / 2
+        self._sampling_frequency = self._get_sampling_frequency(
+            metadata_sampling_frequency=parsed_metadata["sampling_frequency"],
+            sampling_frequency=sampling_frequency,
+            frame_indices=frame_indices,
+        )
         self._channel_names = parsed_metadata["channel_names"]
         self._plane_names = [f"{i}" for i in range(self._num_planes)]
 
@@ -151,17 +156,13 @@ class CxdImagingExtractor(ImagingExtractor):
             )
         self.plane_index = self._plane_names.index(plane_name)
 
-        if self._sampling_frequency is None:
-            if sampling_frequency is None:
-                raise ValueError(
-                    "Sampling frequency is not found in the metadata. Please provide it manually with the 'sampling_frequency' argument."
-                )
-            self._sampling_frequency = sampling_frequency
+        # ImagingExtractor.__init__ sets 'self._times' to None, so it has to be called before the frame times are set.
+        super().__init__(file_path=file_path, channel_name=channel_name, plane_name=plane_name)
 
         pixels_metadata = self.ome_metadata.images[0].pixels
-        timestamps = [plane.delta_t for plane in pixels_metadata.planes]
-        if np.any(timestamps):
-            self._times = np.array(timestamps)
+        self._times = self._get_frame_times(
+            delta_ts=[plane.delta_t for plane in pixels_metadata.planes], num_frames=self._num_frames
+        )
 
         with aicsimageio.readers.bioformats_reader.BioFile(file_path) as reader:
             self._video = reader.to_dask()
@@ -172,10 +173,59 @@ class CxdImagingExtractor(ImagingExtractor):
                 len(frame_indices) <= self._num_frames
             ), "frame_indices must be less than or equal to the number of frames."
             self._video = self._video[frame_indices, ...]
-            self._times = self._times[frame_indices]
+            if self._times is not None:
+                self._times = self._times[frame_indices]
             self._num_frames = len(frame_indices)
 
-        super().__init__(file_path=file_path, channel_name=channel_name, plane_name=plane_name)
+    @staticmethod
+    def _get_sampling_frequency(
+        metadata_sampling_frequency: Union[float, None],
+        sampling_frequency: Union[float, None],
+        frame_indices: Union[List[int], None],
+    ) -> float:
+        """Return the sampling frequency of the extracted frames, from the argument or from the file metadata."""
+        if sampling_frequency is None:
+            if frame_indices is not None:
+                raise ValueError(
+                    "The sampling frequency of the selected frames must be provided with the 'sampling_frequency' "
+                    "argument when 'frame_indices' is used. The sampling frequency in the file metadata "
+                    f"({metadata_sampling_frequency}) is the rate of all frames in the file."
+                )
+            if metadata_sampling_frequency is None:
+                raise ValueError(
+                    "Sampling frequency is not found in the metadata. Please provide it manually with the 'sampling_frequency' argument."
+                )
+            sampling_frequency = metadata_sampling_frequency
+        if not sampling_frequency > 0:
+            raise ValueError(f"The sampling frequency must be positive, received {sampling_frequency}.")
+
+        return float(sampling_frequency)
+
+    @staticmethod
+    def _get_frame_times(delta_ts: list, num_frames: int) -> Union[np.ndarray, None]:
+        """
+        Return the time of each frame in seconds from the start of the acquisition, as stored in the file.
+
+        Returns None with a warning when the file does not hold one increasing time for each frame. The times of
+        the frames are then the frame index divided by the sampling frequency.
+        """
+        reason = None
+        if len(delta_ts) != num_frames:
+            reason = f"it holds {len(delta_ts)} frame times for {num_frames} frames"
+        elif any(delta_t is None for delta_t in delta_ts):
+            reason = "some frames have no time"
+        elif num_frames > 1 and not np.all(np.diff(delta_ts) > 0):
+            reason = "the frame times do not increase from frame to frame"
+        if reason is not None:
+            warnings.warn(
+                f"The frame times in the file are not used because {reason}. "
+                "The frame times are the frame index divided by the sampling frequency.",
+                UserWarning,
+                stacklevel=3,
+            )
+            return None
+
+        return np.array(delta_ts, dtype="float64")
 
     def get_channel_names(self) -> list:
         return self._channel_names

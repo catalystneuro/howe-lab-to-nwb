@@ -33,6 +33,22 @@ Behavioral data is collected at 2kHz via a programmable digital acquisition card
 TTL pulses sent from the imaging cameras enable syncing of behavioral recordings with neural, i.e., imaging, data (see split_and_bin_grid_behav_files.m).
 The resulting "binned" behavioral data measures have one datapoint (calculated via averaging, and for binary variables, subsequently rounded) corresponding to one frame of the recorded neural data movie.
 
+### Timestamps
+
+The behavior signals use the `timestamp` variable of the "binned" behavior file, which has one value for each imaging frame.
+
+The imaging and the fiber photometry series use the frame times that HCImage stored in the .cxd file. These times are
+shifted to place the first frame at the first `timestamp` of the "binned" behavior file. When the .cxd file does not hold
+one increasing time for each frame, the conversion warns and the frame times are the frame index divided by the sampling
+frequency.
+
+The sampling frequency in the .cxd file is the rate of all frames in the file. When two excitation wavelengths alternate
+in the same .cxd file, `dual_wavelength_session_to_nwb` divides this rate by the number of wavelengths. `CxdImagingExtractor`
+does not change the rate on its own: the `sampling_frequency` of the selected frames is required when `frame_indices` is used.
+
+The frame pulses that the cameras send to the NIDAQ card (`ttlIn1`, `ttlIn2`) are not used for the imaging and fiber
+photometry times.
+
 ### Preprocessing steps
 
 All neural data were preprocessed using the scripts in https://github.com/HoweLab/MultifiberProcessing

@@ -44,10 +44,11 @@ class CxdImagingInterface(BaseImagingExtractorInterface):
         plane_name : str, optional
             The name of the plane for this extractor.
         sampling_frequency : float, optional
-            The sampling frequency of the data. If None, the sampling frequency will be read from the file.
+            The sampling frequency of the extracted frames. If None, the sampling frequency will be read from the file.
             If missing from the file, the sampling frequency must be provided.
         frame_indices : list, optional
             List of frame indices to extract. If None, all frames will be extracted.
+            The sampling frequency of the selected frames must be provided when this argument is used.
         verbose : bool, default: True
             controls verbosity.
         """
